@@ -1,0 +1,69 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{geometry}
+\geometry{margin=2cm}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{prftree}
+\usepackage{graphicx}
+
+\title{\vspace{-2cm}\textbf{Cheatsheet Rocq : Leçon 1}}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.5cm}
+
+\section*{1. Dictionnaire : $\lambda$-calcul simplement typé $\leftrightarrow$ Rocq}
+
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\textwidth}{@{} l X c @{}}
+  \toprule
+  \textbf{Concept Théorique} & \textbf{Notation Papier (Maths/Logique)} & \textbf{Syntaxe Rocq (Gallina)} \\
+  \midrule
+  %   Type des propositions & --- & \texttt{Prop} \\
+  Déclaration de type & $x : A$ & \texttt{x : A} \\
+  Implication / Type flèche & $A \to B$ & \texttt{A -> B} \\
+  Abstraction ($\lambda$) & $\lambda x. M$ & \texttt{fun x => M} \\
+  Abstraction multiple & $\lambda x. \lambda y. M$ & \texttt{fun x y => M} \\
+  Application & $M \ N$ & \texttt{M N} \\
+  Parenthésage & $(f \ (g \ x))$ & \texttt{f (g x)} \\
+  \bottomrule
+\end{tabularx}
+
+\vspace{1cm}
+
+\section*{2. Tactiques et Déduction Naturelle}
+
+Dans le mode \textbf{Preuve Interactive}, les tactiques construisent le $\lambda$-terme à l'envers (en remontant de la conclusion vers les prémisses de l'arbre de dérivation).
+
+\vspace{0.5cm}
+\begin{tabularx}{\textwidth}{@{} l X X @{}}
+  \toprule
+  \textbf{Tactique Rocq} & \textbf{Effet sur le Séquent (Contexte $\vdash$ But)} & \textbf{Règle de Déduction Naturelle} \\
+  \midrule
+  \texttt{intros x.} &
+  Prend l'antécédant $A$ du but ($A \to B$) et l'introduit comme nouvelle hypothèse dans le contexte sous le nom \texttt{x}. Le but devient $B$. &
+  \textbf{$\to$-Introduction} \newline (Abstraction en $\lambda$-calcul) \newline
+  \vspace{0.2cm} \newline
+  $\prftree[r]{Abs}{\Gamma, x : A \vdash M : B}{\Gamma \vdash \lambda x.M : A \to B}$ \\
+  \midrule
+  \texttt{exact x.} &
+  Résout le but courant si l'hypothèse \texttt{x} correspond \emph{exactement} au but. &
+  \textbf{Règle "axiome"} \newline (Typage d'une variable) \newline
+  \vspace{0.2cm} \newline
+  $\prftree[r]{Var}{\Gamma, x : A \vdash x : A}$ \\
+  \midrule
+  \texttt{apply f.} &
+  Si le but est $B$ et qu'on a $f : A \to B$, change le but en $A$ (raisonnement arrière). &
+  \textbf{$\to$-Élimination} \newline (Modus Ponens / Application) \newline
+  \vspace{0.2cm} \newline
+  \resizebox{\linewidth}{!}{$\prftree[r]{App}{\prftree[r]{Var}{\Gamma, f : A \to B \vdash f : A \to B}}{\prfassumption{\Gamma, f : A \to B \vdash M : A}}{\Gamma, f : A \to B \vdash f\ M : B}$} \\
+  \bottomrule
+\end{tabularx}
+
+\end{document}

@@ -1,0 +1,326 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[most]{tcolorbox}
+\usepackage{prftree}
+
+\newtcbtheorem{remarque}{Remarque}{
+  colback=blue!5!white,
+  colframe=blue!75!black,
+  fonttitle=\bfseries,
+  breakable,
+  enhanced
+}{rem}
+
+\newtcbtheorem{exercice}{Exercice}{
+  colback=green!5!white,
+  colframe=green!40!black,
+  fonttitle=\bfseries,
+  breakable,
+  enhanced
+}{exo}
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\lstset{
+  language=ML,
+  backgroundcolor=\color{backcolour},
+  commentstyle=\color{codegreen},
+  keywordstyle=\color{blue}\bfseries,
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{lightgray},
+  showstringspaces=false
+}
+
+\makeatletter
+\newcommand{\subtitle}[1]{%
+  \gdef\@subtitle{#1}%
+}
+\let\oldmaketitle\maketitle
+\renewcommand{\maketitle}{%
+  \let\oldtitle\@title
+  \renewcommand{\@title}{\oldtitle\\[1em]\Large\normalfont\@subtitle}%
+  \oldmaketitle
+}
+\makeatother
+
+\title{LEÇON 1 : Du Lambda-Calcul à Rocq}
+\subtitle{La Correspondance de Curry-Howard en Action}
+\date{17/03/2026}
+\author{Pablo Donato}
+
+\begin{document}
+
+\maketitle
+
+Bienvenue dans Rocq ! Aujourd'hui, nous allons voir la correspondance de Curry-Howard (Propositions comme Types, Preuves comme Programmes) prendre vie.
+
+Tout ce qui se trouve entre ``(*'' et ``*)'' affiché en orange/marron, incluant le texte que vous êtes en train de lire, est ce que l'on appelle couramment en programmation un ``commentaire''. C'est une partie du code destinée uniquement à la lecture par les êtres humains, qui ne sera donc pas exécutée/interprétée par la machine. Dans les commentaires, nous écrirons entre crochets ``['' et ``]'' les bouts de texte correspondant à du véritable code Rocq (mais qui restent ignorés par la machine puisqu'en commentaire).
+
+Pour exécuter pas à pas le code situé en-dehors des commentaires, utilisez le bouton Flèche Bas dans la barre d'outils en haut à droite de jsCoq, ou appuyez sur les touches Alt+Bas (Windows/Linux) ou Option+Bas (Mac). Le code déjà exécuté est surligné en gris, ou en rose s'il a déclenché une erreur.
+
+Dernière remarque : il est fortement conseillé de désactiver l'affichage Unicode. Pour cela, accédez au menu via le bouton ``$\vdots$'' tout en haut à droite de la page, et décochez l'option ``Enable company-coq''. Bonne lecture !
+
+\section{Langage vernaculaire}
+
+\subsection*{Sections}
+
+Ci-dessous se trouve notre première commande : la commande \texttt{Section}.
+
+Tout comme le titre d'une section dans un article scientifique, elle marque le début d'une partie du document qui exhibe une certaine cohérence thématique, ici capturée par le titre \texttt{Lesson1}. Mais contrairement à une section ``informelle'', la machine a besoin que l'on marque exactement l'endroit où se termine la section à l'aide de la commande \texttt{End}.
+
+Un lecteur astucieux pourrait alors croire que le présent usage de \texttt{Section} est trivial, car la commande \texttt{End Lesson1} se trouve sur la toute dernière ligne, couvrant donc l'entièreté du document.
+
+En réalité, cela s'explique par le fait qu'au-delà de sa fonction thématique/sémantique pour l'humain, la commande \texttt{Section} possède aussi une fonction \emph{syntaxique} pour la machine : elle permet en effet de délimiter la \emph{portée} (\emph{scope} en anglais) des variables déclarées avec la commande \texttt{Variables}, expliquée ci-après.
+
+\begin{lstlisting}
+Section Lesson1.
+\end{lstlisting}
+
+\begin{remarque}{}{}
+  Toute utilisation d'une commande Rocq doit se terminer par un point `.'.
+\end{remarque}
+
+\begin{remarque}{}{}
+  On ne peut pas utiliser n'importe quel nom comme titre d'une \texttt{Section} : seules certaines chaînes/séquences de caractères sont autorisées, qu'on appelle des \textbf{identifiants}.
+\end{remarque}
+
+\subsection*{Identifiants}
+
+Le concept d'identifiant est pervasif dans les langages de programmation. Il émerge principalement du besoin d'avoir des algorithmes efficaces pour interpréter le code source d'un programme de manière non-ambigüe. Cela est particulièrement vrai pour la formalisation logique, où l'ambiguïté peut être fatale à la vérification : par exemple, comment faire confiance à une démonstration d'un théorème dont l'énoncé ne serait même pas exactement déterminé ?
+
+Dans Rocq, les identifiants sont des séquences sans espaces et composées uniquement des caractères suivants :
+\begin{itemize}
+  \item Lettres (et plus généralement tout symbole Unicode comme les lettres grecques et de nombreux symboles mathématiques)
+  \item Chiffres (0-9), mais l'identifiant ne peut pas commencer par un chiffre
+  \item Le tiret du bas `\_'
+  \item L'apostrophe (') mais l'identifiant ne peut pas commencer par une apostrophe
+\end{itemize}
+
+De plus, les identifiants sont sensibles à la casse, et le caractère `\_' seul est réservé et n'est pas un identifiant valide.
+
+\subsection*{Déclarations de variables et propositions}
+
+Dans un texte mathématique informel, il est courant de déclarer des variables dénotant des objets arbitraires dans un certain domaine de discours. Par exemple en logique, on peut écrire :
+
+\begin{center}
+  ``Soient $A$, $B$ et $C$ des propositions.''
+\end{center}
+
+Dans ce cas les variables ont pour noms les lettres `$A$', `$B$' et `$C$', et le domaine de discours est un ensemble de formules propositionnelles à préciser, disons celui généré par les connecteurs $\{\neg, \land, \lor, \to\}$ à partir de symboles de propositions atomiques. Une fois la déclaration faite, on peut dénoter de nouveaux objets construits à partir de ceux dénotés par les variables en inscrivant leurs noms dans des expressions plus complexes, par exemple la conjonction $A \land B$ des propositions $A$ et $B$.
+
+Dans Rocq, déclarer des variables se fait via la commande \texttt{Variables}, suivie de la liste des noms des variables séparés par des espaces, suivie de deux points \texttt{ : }, suivis du \emph{type} des variables. Rocq étant basé sur la théorie des types, le domaine de discours va en effet être formalisé par la notion de type.
+
+Rocq dispose d'un type primitif pour les propositions, noté \texttt{Prop}. Nous verrons au fil du cours les différents connecteurs logiques supportés par Rocq pour construire des habitants/éléments du type \texttt{Prop}. Toutefois nous n'essaierons pas de caractériser exactement l'ensemble des habitants de \texttt{Prop}, comme on le ferait habituellement avec une grammaire ou une définition inductive de l'ensemble des formules.
+
+On peut donc formaliser la déclaration de variables précédente comme suit :
+
+\begin{lstlisting}
+Variables A B C : Prop.
+\end{lstlisting}
+
+\begin{remarque}{}{}
+  Les variables déclarées dans une section ne peuvent être utilisées qu'à l'intérieur de cette section. Aussi à l'instar des noms de sections, les noms de variables doivent être des identifiants valides.
+\end{remarque}
+
+\section{Mode Terme (langage Gallina)}
+
+Vous savez déjà que par la correspondance de Curry-Howard, prouver l'implication $A \to A$ en déduction naturelle revient à écrire la fonction identité ($\lambda x.x$) en $\lambda$-calcul.
+
+Écrivons ce $\lambda$-terme exact dans Rocq.
+
+\begin{itemize}
+  \item La commande \texttt{Definition} indique à Rocq que nous définissons un terme.
+  \item \texttt{I\_term} est le nom que nous lui donnons, qui doit être un identifiant valide.
+  \item \texttt{A -> A} est le type (la proposition que nous prouvons).
+  \item \texttt{fun x => x} est le $\lambda$-terme (la preuve elle-même).
+\end{itemize}
+
+La notation exacte de Rocq pour les $\lambda$-termes et les types peut être consultée dans la Cheatsheet.
+
+\begin{lstlisting}
+Definition I_term : A -> A := fun x => x.
+\end{lstlisting}
+
+Lorsqu'une \texttt{Definition} est exécutée sans erreur, cela signifie que le terme à droite de \texttt{:=} a bien le type indiqué à droite de \texttt{:}. Sous le capot, Rocq va en effet appliquer un algorithme de ``type-checking'' qui synthétise automatiquement une dérivation de typage, ici pour le jugement $\vdash \lambda x.x : A \to A$.
+
+La définition ci-dessus se base sur un typage ``à la Curry'', où l'on assigne un type à un $\lambda$-terme pur. En réalité, l'objet qui est construit et stocké en mémoire par Rocq est un terme typé ``à la Church'', avec des annotations de type additionnelles sur chaque variable liée par une $\lambda$-abstraction. Cela peut s'observer avec la commande \texttt{Print}, qui affiche le terme et le type associés à une définition donnée:
+
+\begin{lstlisting}
+Print I_term.
+\end{lstlisting}
+
+Regardez le ``panneau de sortie'' en bas à droite ! Vous devriez pouvoir y lire :
+
+\begin{verbatim}
+I_term = fun x : A => x
+       : A -> A
+\end{verbatim}
+
+Vous constaterez l'annotation additionnelle dans \texttt{fun x : A => x} comparé à \texttt{fun x => x}.
+
+Maintenant, définissons le combinateur K : $A \to (B \to A)$.
+Cela correspond à une fonction prenant deux arguments et retournant le premier.
+\begin{itemize}
+  \item En $\lambda$-calcul : $\lambda x.\lambda y.x$
+  \item Dans Rocq : \texttt{fun x => fun y => x} (ou de façon plus concise : \texttt{fun x y => x})
+\end{itemize}
+
+\begin{lstlisting}
+Definition K_term : A -> (B -> A) := fun x y => x.
+\end{lstlisting}
+
+\section{Mode Preuve Interactive (langage de tactiques)}
+
+Écrire manuellement des $\lambda$-termes est pratique et instructif sur de petits exemples, mais devient vite très fastidieux lorsqu'on formalise des démonstrations complexes, en plus de produire un artefact difficilement lisible pour un humain.
+
+Pour pallier ce problème, Rocq dispose d'un langage de \textbf{tactiques} permettant de synthétiser automatiquement des ``bouts'' de $\lambda$-termes. L'idée est de travailler étape par étape ``à l'envers'' en partant du type à habiter (de la proposition à prouver).
+
+Construisons à nouveau la fonction identité, cette fois-ci à l'aide de tactiques. On utilise la commande \texttt{Lemma} pour indiquer à Rocq que l'on souhaite définir un nouveau terme \texttt{I\_tac} de type \texttt{A -> A} (prouver un lemme \texttt{I\_tac} dont l'énoncé est \texttt{A -> A}); puis la commande \texttt{Proof} pour rentrer dans le mode de Preuve Interactive où nous pourrons utiliser les tactiques.
+
+\begin{lstlisting}
+Lemma I_tac : A -> A.
+Proof.
+\end{lstlisting}
+
+Regardez le panneau de droite. Au-dessus de la ligne se trouve votre contexte d'hypothèses (ce que vous savez). En dessous de la ligne se trouve votre but (ce que vous devez prouver). Cela correspond grosso modo à un séquent, dont la partie gauche est le contexte et la partie droite le but.
+
+La tactique \texttt{intros} implémente la règle de typage de l'abstraction en $\lambda$-calcul (la règle d'introduction de l'implication en déduction naturelle), lue de bas en haut:
+$$\prftree[r]{Abs}{\Gamma, x : A \vdash M : B}{\Gamma \vdash \lambda x.M : A \to B}$$
+Elle prend l'antécédant \texttt{A} de l'implication et le déplace au-dessus de la ligne/à gauche du séquent, lui donnant le nom \texttt{x}.
+
+\begin{lstlisting}
+  intros x.
+\end{lstlisting}
+
+Jetons un coup d'œil sous le capot ! \texttt{Show Proof} révèle dans le panneau de sortie le $\lambda$-terme que Rocq construit pour nous. Remarquez le \texttt{?Goal}. Rocq sait que le terme final aura la forme $\lambda x.M$, mais a encore besoin de nous pour déterminer le corps \texttt{M} de la fonction.
+
+\begin{lstlisting}
+  Show Proof.
+\end{lstlisting}
+
+Pour résoudre le but, nous utilisons la tactique \texttt{exact}, qui indique à Rocq : ``Le terme dont j'ai besoin est exactement cette hypothèse/variable dans mon contexte.''
+
+Elle implémente la règle de typage des variables en $\lambda$-calcul (la règle ``axiome'' en déduction naturelle) :
+$$\prftree[r]{Var}{\Gamma, x : A \vdash x : A}$$
+
+\begin{lstlisting}
+  exact x.
+\end{lstlisting}
+
+Il n'y a maintenant plus de buts à résoudre, puisque la règle n'a pas de prémisses ! On peut donc sortir du mode Preuve Interactive avec la commande \texttt{Qed}.
+
+\begin{lstlisting}
+Qed.
+\end{lstlisting}
+
+Affichons notre terme de preuve ainsi construit. Remarquez qu'il est parfaitement identique à \texttt{I\_term} !
+
+\begin{lstlisting}
+Print I_tac.
+\end{lstlisting}
+
+On peut aussi facilement construire le combinateur K avec des tactiques :
+
+\begin{lstlisting}
+Lemma K_tac : A -> B -> A.
+Proof.
+\end{lstlisting}
+Nous avons deux prémisses à introduire. Nous pouvons les faire toutes les deux à la fois.
+\begin{lstlisting}
+  intros x y.
+\end{lstlisting}
+Notre but est \texttt{A}. Nous avons un \texttt{x} de type \texttt{A} dans notre contexte.
+\begin{lstlisting}
+  exact x.
+Qed.
+
+Print K_tac.
+\end{lstlisting}
+
+\section{Application (Modus Ponens \& Transitivité)}
+
+Comment utilisons-nous le Modus Ponens ?
+Si nous avons \texttt{f : A -> B} et \texttt{x : A} dans notre contexte, nous pouvons appliquer \texttt{f} à \texttt{x} pour obtenir \texttt{B}. La tactique \texttt{apply} fonctionne à l'envers : si notre but est \texttt{B}, et nous avons \texttt{f : A -> B}, \texttt{apply f} change notre but en \texttt{A}.
+
+Cela correspond à un cas particulier de la règle de typage de l'application en $\lambda$-calcul (la règle d'élimination de l'implication en déduction naturelle), là encore lue de bas en haut:
+$$\prftree[r]{App}{\prftree[r]{Var}{\Gamma, f : A \to B \vdash f : A \to B}}{\prfassumption{\Gamma, f : A \to B \vdash M : A}}{\Gamma, f : A \to B \vdash f\ M : B}$$
+
+\begin{lstlisting}
+Lemma transitivity : (A -> B) -> (B -> C) -> (A -> C).
+Proof.
+  intros f g x.
+\end{lstlisting}
+
+But actuel : \texttt{C}. Nous avons \texttt{g : B -> C}. Si nous pouvons prouver \texttt{B}, \texttt{g} nous donnera \texttt{C}.
+
+\begin{lstlisting}
+  apply g.
+\end{lstlisting}
+
+But actuel : \texttt{B}. Nous avons \texttt{f : A -> B}. Si nous pouvons prouver \texttt{A}, \texttt{f} nous donnera \texttt{B}.
+
+\begin{lstlisting}
+  apply f.
+\end{lstlisting}
+
+But actuel : \texttt{A}. Nous avons exactement \texttt{x : A} !
+
+\begin{lstlisting}
+  exact x.
+Qed.
+\end{lstlisting}
+
+Remarquez que le $\lambda$-terme sous-jacent implémente exactement la composition de fonction $(g \circ f)(x) = g(f(x))$ !
+
+\begin{lstlisting}
+Print transitivity.
+\end{lstlisting}
+
+\section{Exercices}
+
+\begin{exercice}{}{}
+  Construisez le combinateur S en mode Preuve Interactive. (Indice : utilisez les tactiques \texttt{intros}, \texttt{apply} et \texttt{exact})
+\end{exercice}
+
+\begin{lstlisting}
+Lemma S_tac : (A -> B -> C) -> (A -> B) -> A -> C.
+Proof.
+  (* ECRIVEZ VOTRE PREUVE ICI *)
+Admitted. (* Changez 'Admitted' en 'Qed' quand vous avez termine ! *)
+\end{lstlisting}
+
+La commande \texttt{Axiom} permet de rajouter une nouvelle constante typée dans l'environnement ``global'', i.e. qui sera utilisable dans toutes les définitions et démonstrations subséquentes. Elle contraste avec la commande \texttt{Variables}, qui se contente de rajouter des variables/hypothèses communes à toutes les définitions se trouvant dans la même section.
+
+Du point de vue de la théorie des types (théorie de la démonstration), cela revient à rajouter une nouvelle règle axiomatique (i.e. sans prémisses) permettant d'habiter n'importe quel type (de démontrer n'importe quelle proposition):
+$$\prftree[r]{Axiom}{\Gamma \vdash c : A}$$
+
+C'est donc une règle extrêmement puissante et dangereuse, comme le montre la constante \texttt{todo} ci-après capable de prouver n'importe quelle proposition \texttt{A}!
+
+\begin{lstlisting}
+Axiom todo : forall {A : Prop}, A.
+\end{lstlisting}
+
+Bien que cela rende le système inconsistant, ce n'est pas réellement un problème: Rocq est capable de tracer l'utilisation d'axiomes dans une démonstration, ce qui nous permet de savoir exactement à quel point celle-ci utilise des principes que l'on considère acceptables ou non. Nous verrons ainsi lors de la prochaine séance comment faire de la logique classique avec l'axiome du tiers-exclu $A \lor \neg A$.
+
+\begin{exercice}{}{}
+  Définissez manuellement un $\lambda$-terme pur typable par $(A \to B \to C) \to (B \to A \to C)$, dont le comportement consiste à échanger la position des deux arguments d'une fonction.
+\end{exercice}
+
+\begin{lstlisting}
+Definition swap : (A -> B -> C) -> (B -> A -> C) :=
+  todo.
+  (* REMPLACEZ [todo] PAR VOTRE TERME *)
+
+End Lesson1.
+\end{lstlisting}
+
+\end{document}
