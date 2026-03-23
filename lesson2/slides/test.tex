@@ -1,0 +1,16 @@
+\documentclass{article}
+\usepackage{prftree}
+\usepackage{amsmath}
+\begin{document}
+Test 1:
+\[ \prftree[r]{Intro}{A}{B}{A \land B} \]
+
+Test 2:
+\[ \prftree[r]{Elim}{\prfsummary{A}{B}}{C} \]
+
+Test 3:
+\[ \prftree[r]{Elim}{\prfsummary{B}}{C} \]
+
+Test 4:
+\[ \prftree{\prfsummary{ \text{preuve de B} }{\Gamma \vdash B}}{\Gamma \vdash A \to B} \]
+\end{document}
