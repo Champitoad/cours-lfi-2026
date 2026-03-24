@@ -10,8 +10,14 @@
 \usepackage{xcolor}
 \usepackage{prftree}
 \usepackage{graphicx}
+\usepackage{xltabular}
+\usepackage{hyperref}
+\usepackage{newunicodechar}
+\newunicodechar{ι}{\ensuremath{\iota}}
+\newunicodechar{₁}{\ensuremath{_1}}
+\newunicodechar{₂}{\ensuremath{_2}}
 
-\title{\vspace{-2cm}\textbf{Cheatsheet Rocq : Leçon 1}}
+\title{\vspace{-2cm}\textbf{Cheatsheet Rocq}}
 \date{}
 
 \begin{document}
@@ -32,6 +38,13 @@
   Abstraction multiple & $\lambda x. \lambda y. M$ & \texttt{fun x y => M} \\
   Application & $M \ N$ & \texttt{M N} \\
   Parenthésage & $(f \ (g \ x))$ & \texttt{f (g x)} \\
+  \midrule
+  Conjonction (ET) & $A \land B$ & \texttt{A /\textbackslash\ B} \\
+  Paire & $(x, y)$ & \texttt{(x, y)} \\
+  Disjonction (OU) & $A \lor B$ & \texttt{A \textbackslash/ B} \\
+  Injections & $\iota_1, \iota_2$ & \texttt{ι₁, ι₂} \\
+  Négation (NON) & $\neg A$ & \texttt{\textasciitilde A} ou \texttt{not A} \\
+  Absurdité & $\bot$ & \texttt{False} \\
   \bottomrule
 \end{tabularx}
 
@@ -42,7 +55,7 @@
 Dans le mode \textbf{Preuve Interactive}, les tactiques construisent le $\lambda$-terme à l'envers (en remontant de la conclusion vers les prémisses de l'arbre de dérivation).
 
 \vspace{0.5cm}
-\begin{tabularx}{\textwidth}{@{} l X X @{}}
+\begin{xltabular}{\textwidth}{@{} l X X @{}}
   \toprule
   \textbf{Tactique Rocq} & \textbf{Effet sur le Séquent (Contexte $\vdash$ But)} & \textbf{Règle de Déduction Naturelle} \\
   \midrule
@@ -63,7 +76,56 @@ Dans le mode \textbf{Preuve Interactive}, les tactiques construisent le $\lambda
   \textbf{$\to$-Élimination} \newline (Modus Ponens / Application) \newline
   \vspace{0.2cm} \newline
   \resizebox{\linewidth}{!}{$\prftree[r]{App}{\prftree[r]{Var}{\Gamma, f : A \to B \vdash f : A \to B}}{\prfassumption{\Gamma, f : A \to B \vdash M : A}}{\Gamma, f : A \to B \vdash f\ M : B}$} \\
+  \midrule
+  \texttt{split.} &
+  Pour un but $A \land B$, crée deux sous-buts $A$ et $B$. &
+  \textbf{$\land$-Introduction} \newline (Formation de paire) \newline
+  \vspace{0.2cm} \newline
+  \resizebox{\linewidth}{!}{$\prftree[r]{${\land}I$}{\Gamma \vdash M : A}{\Gamma \vdash N : B}{\Gamma \vdash (M, N) : A \land B}$} \\
+  \midrule
+  \texttt{destruct H as [x y].} &
+  Pour $H : A \land B$, extrait les preuves $x:A$ et $y:B$. &
+  \textbf{$\land$-Éliminations} \newline (Projections $\pi_1, \pi_2$) \newline
+  \vspace{0.2cm} \newline
+  \resizebox{\linewidth}{!}{$\prftree[r]{${\land}E_1$}{\Gamma \vdash M : A \land B}{\Gamma \vdash \pi_1 M : A} \quad \prftree[r]{${\land}E_2$}{\Gamma \vdash M : A \land B}{\Gamma \vdash \pi_2 M : B}$} \\
+  \midrule
+  \texttt{left.} / \texttt{right.} &
+  Pour un but $A \lor B$, choisit de prouver $A$ (gauche) ou $B$ (droite). &
+  \textbf{$\lor$-Introductions} \newline (Injections $\iota_1, \iota_2$) \newline
+  \vspace{0.2cm} \newline
+  \resizebox{\linewidth}{!}{$\prftree[r]{${\lor}I_1$}{\Gamma \vdash M : A}{\Gamma \vdash \iota_1 M : A \lor B} \quad \prftree[r]{${\lor}I_2$}{\Gamma \vdash M : B}{\Gamma \vdash \iota_2 M : A \lor B}$} \\
+  \midrule
+  \texttt{destruct H as [x | y].} &
+  Pour $H : A \lor B$, génère deux univers : l'un avec $x:A$, l'autre avec $y:B$. &
+  \textbf{$\lor$-Élimination} \newline (Raisonnement par cas : \newline \texttt{match ... with}) \newline
+  \vspace{0.2cm} \newline
+  \resizebox{\linewidth}{!}{$\prftree[r]{${\lor}E$}{\Gamma \vdash M : A \lor B}{\Gamma, x : A \vdash N : C}{\Gamma, y : B \vdash P : C}{\Gamma \vdash \text{match } M \text{ with } \dots : C}$} \\
+  \midrule
+  \texttt{destruct H.} &
+  Variante des précédents : Rocq choisit les noms d'hypothèses automatiquement. &
+  \begin{center}
+    ---
+  \end{center} \\
+  \midrule
+  \texttt{exfalso.} &
+  Change n'importe quel but en $\bot$ (\texttt{False}). &
+  \textbf{Principe d'Explosion} \newline (\textit{Ex Falso Quodlibet}) \newline
+  \vspace{0.2cm} \newline
+  $\prftree[r]{$\bot$E}{\Gamma \vdash M : \bot}{\Gamma \vdash \texttt{abort } M : A}$ \\
   \bottomrule
-\end{tabularx}
+\end{xltabular}
+
+\section*{3. Logique Classique vs Intuitionniste}
+
+Par défaut, Rocq utilise une logique \textbf{intuitionniste} (constructiviste) : on ne peut prouver $A \lor \neg A$ que si l'on possède un algorithme pour décider lequel est vrai.
+
+\begin{itemize}
+  \item \textbf{Axiome LEM} : On peut introduire la logique classique en rajoutant l'axiome :
+    \[
+      \text{\texttt{Axiom LEM : forall X, X \textbackslash/ not X.}}
+    \]
+  \item \textbf{Épistémologie} : Le Tiers-Exclu est rejeté en informatique pure car il est lié à l'\textbf{indécidabilité} de Gödel et Turing\footnote{\url{https://fr.wikipedia.org/wiki/D\%C3\%A9cidabilit\%C3\%A9}} (on ne peut pas décider la vérité de n'importe quelle proposition de manière générique).
+  \item \textbf{Double Négation} : En logique classique, $\neg\neg A \to A$ est un théorème. En logique intuitionniste, on n'a que $A \to \neg\neg A$.
+\end{itemize}
 
 \end{document}

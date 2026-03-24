@@ -99,7 +99,7 @@ Print OU_intro_droite.
 
 (** DISTINCTION FONDAMENTALE : DONNÉES vs CONTRÔLE
 
-    En informatique, on sépare généralement deux grands piliers :
+    En programmation, on sépare généralement deux grands piliers :
     1. Les Structures de Données : comment la machine représente et stocke 
        l'information (ex: les paires pour le ET, ou les injections pour le OU).
     2. Les Structures de Contrôle : comment la machine prend des décisions 
@@ -191,7 +191,7 @@ Proof.
 Abort.
 
 (** Conséquence : si l'on veut retrouver notre zone de confort mathématique 
-    (la logique classique et platonicienne de Descartes/Aristote), on doit forcer le calcul 
+    (la logique classique et platonicienne de Descartes/Aristote), on doit forcer le système
     en imposant violemment le principe de Tiers-Exclu comme une vérité infuse via la 
     commande [Axiom]. *)
 Axiom LEM : forall X : Prop, X \/ ~X.
@@ -210,8 +210,8 @@ Proof.
        On a A à disposition, la victoire est immédiate. *)
     exact x.
   - (* L'univers 2 correspond au cas où (par magie cosmique), ~A était vrai.
-       Mais attendez! Notre hypothèse constructiviste de départ [non_non_a] nous
-       jure la main sur le cœur que [~A -> False] ! La contradiction est totale. *)
+       Mais attendez! Notre hypothèse de départ [non_non_a] nous jure la main
+       sur le cœur que [~A -> False] ! La contradiction est totale. *)
     exfalso.
     apply non_non_a.
     exact non_a.

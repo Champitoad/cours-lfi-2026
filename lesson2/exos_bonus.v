@@ -1,9 +1,5 @@
 (****************************************************************)
 (* Exercices bonus : Toutes les tautologies d'Edukera           *)
-(*                                                              *)
-(* Remplacez 'Admitted.' par 'Qed.' une fois la preuve finie.   *)
-(* Attention : certaines (ex: Classical logic) nécessitent le   *)
-(* Tiers-Exclu (LEM) ! Si besoin, déclarez l'axiome LEM.        *)
 (****************************************************************)
 
 Section Tautologies.

@@ -72,7 +72,7 @@
 
 Après avoir exploré l'implication ($\to$), notre voyage au cœur de la correspondance de Curry-Howard se poursuit. Aujourd'hui, nous allons découvrir comment Rocq traite la Conjonction (ET), la Disjonction (OU), et l'Absurdité (NON).
 
-Nous adopterons une perspective profondément constructiviste (la sémantique Brouwer-Heyting-Kolmogorov, ou BHK), où chaque connecteur logique n'est pas une simple table de vérité, mais une véritable \textbf{structure de données} informatique construite par nos soins !
+Nous adopterons une perspective profondément constructiviste (la sémantique Brouwer-Heyting-Kolmogorov, ou BHK), où chaque connecteur logique n'est pas une simple table de vérité, mais une véritable \textit{structure de données} informatique construite par nos soins !
 
 \begin{lstlisting}
 Notation "( x , y )" := (conj x y).
@@ -86,37 +86,54 @@ Variables A B C : Prop.
 
 \section{La Conjonction (Le ET : $\land$)}
 
-En logique de la réalisation (constructivisme), posséder une preuve formelle de $A \land B$, c'est posséder indépendamment une preuve de $A$ ET une preuve de $B$. Informatiquement, cela correspond exactement à la notion de \textbf{paire} (ou ``tuple'').
+Posséder une preuve formelle de $A \land B$, c'est posséder indépendamment une preuve de $A$ ET une preuve de $B$. Informatiquement, cela correspond exactement à la notion de \textit{paire} (ou ``tuple'').
 
 La règle d'introduction de la conjonction en déduction naturelle est la suivante :
 $$\prftree[r]{${\land}I$}{\Gamma \vdash M : A}{\Gamma \vdash N : B}{\Gamma \vdash (M, N) : A \land B}$$
 
-Pour construire/introduire une telle paire dans Rocq, nous utilisons la tactique \texttt{split}.
+Pour construire/introduire une telle paire, nous utilisons la tactique \texttt{split}.
 
 \begin{lstlisting}
 Lemma ET_intro : A -> B -> A /\ B.
 Proof.
   intros x y.
+\end{lstlisting}
+
+Notre but est $A \land B$. Nous avons besoin d'en fournir les deux composantes.
+
+\begin{lstlisting}
   split.
+\end{lstlisting}
+
+\texttt{split} a divisé notre but en deux. Remarquez l'usage de la puce sous forme de tiret `-' qui permet de se concentrer successivement sur le premier puis second buts générés.
+
+\begin{lstlisting}
   - exact x.
   - exact y.
 Qed.
-
-Print ET_intro.
 \end{lstlisting}
 
 \begin{remarque}{}{}
   Observons le terme final. Le compilateur nous montre que le terme de preuve est bel et bien structuré comme une paire !
 \end{remarque}
 
-À l'inverse, si nous \emph{avons} une hypothèse de type $A \land B$, nous pouvons la ``détruire'' pour en extraire les deux composants sous-jacents, grâce à la commande \texttt{destruct}. Cela correspond aux \textbf{projections} $\pi_1$ et $\pi_2$ :
-$$\prftree[r]{${\land}E_1$}{\Gamma \vdash M : A \land B}{\Gamma \vdash \pi_1 M : A} \qquad \prftree[r]{${\land}E_2$}{\Gamma \vdash M : A \land B}{\Gamma \vdash \pi_2 M : B}$$
+\begin{lstlisting}
+Print ET_intro.
+\end{lstlisting}
+
+À l'inverse, si nous \textit{avons} une hypothèse de type $A \land B$, nous pouvons la ``détruire'' pour en extraire les deux composants sous-jacents, grâce à la commande \texttt{destruct}. Cela correspond aux ``projections'' $\pi_1$ et $\pi_2$.
 
 \begin{lstlisting}
 Lemma ET_symetrie : A /\ B -> B /\ A.
 Proof.
   intros H_ab.
+\end{lstlisting}
+
+L'hypothèse \texttt{H\_ab} cache une paire. \texttt{destruct} va l'ouvrir et nommer ses deux composants \texttt{x} (la preuve de A) et \texttt{y} (la preuve de B).
+
+\begin{lstlisting}
   destruct H_ab as [x y].
+  Show Proof.
   split.
   - exact y.
   - exact x.
@@ -127,7 +144,7 @@ Qed.
 
 Voici le grand point de rupture du constructivisme ! Pour prouver $A \lor B$, vous ne pouvez pas joyeusement affirmer ``bon, l'un des deux doit être vrai'', sans savoir lequel. Vous DEVEZ exhiber consciemment une preuve ou bien de $A$, ou bien de $B$.
 
-Informatiquement, c'est ce qu'on appelle un \textbf{type somme}. L'ordinateur conserve la trace indélébile du choix effectué via des fonctions d'injection : \texttt{left} correspond à $\iota_1$ et \texttt{right} correspond à $\iota_2$.
+Informatiquement, c'est ce qu'on appelle un type ``somme''. L'ordinateur conserve la trace indélébile du choix effectué via des fonctions d'injection : \texttt{left} correspond à $\iota_1$ et \texttt{right} correspond à $\iota_2$.
 
 $$\prftree[r]{${\lor}I_1$}{\Gamma \vdash M : A}{\Gamma \vdash \iota_1 M : A \lor B} \qquad \prftree[r]{${\lor}I_2$}{\Gamma \vdash N : B}{\Gamma \vdash \iota_2 N : A \lor B}$$
 
@@ -135,60 +152,108 @@ $$\prftree[r]{${\lor}I_1$}{\Gamma \vdash M : A}{\Gamma \vdash \iota_1 M : A \lor
 Lemma OU_intro_gauche : A -> A \/ B.
 Proof.
   intros x.
+\end{lstlisting}
+
+Nous faisons le choix fort de prouver le côté gauche en injectant \texttt{x}.
+
+\begin{lstlisting}
   left.
   exact x.
 Qed.
+\end{lstlisting}
 
-(** On constate que le terme de preuve final est l'application de l'injection 
-    gauche [ι₁] à la variable [x] de type [A].
-    On note aussi que le type [B] est passé en argument juste avant [x] : c'est
-    parce que Rocq a besoin de stocker le type de la branche inutilisée... *)
+On constate que le terme de preuve final est l'application de l'injection gauche $\iota_1$ à la variable \texttt{x} de type $A$.
+
+On note aussi que le type $B$ est passé en argument juste avant \texttt{x} : c'est parce que Rocq a besoin de stocker le type de la branche inutilisée (ici à droite) pour connaître le type complet $A \lor B$ de l'injection, et cette information ne peut être inférée uniquement à partir du type de \texttt{x}.
+
+\begin{lstlisting}
 Print OU_intro_gauche.
 \end{lstlisting}
 
-\begin{remarque}{Structures de Données vs Contrôle}{val}
+À l'inverse, l'injection droite avec la tactique \texttt{right} :
+
+\begin{lstlisting}
+Lemma OU_intro_droite : B -> A \/ B.
+Proof.
+  intros y.
+  right.
+  exact y.
+Qed.
+\end{lstlisting}
+
+De même ici, le terme de preuve est l'application de l'injection droite $\iota_2$ à la variable \texttt{y}.
+
+\begin{lstlisting}
+Print OU_intro_droite.
+\end{lstlisting}
+
+\begin{remarque}{Distinction Fondamentale : Données vs Contrôle}{val}
   En informatique, on sépare généralement deux grands piliers :
   \begin{enumerate}
-    \item \textbf{Structures de Données} : comment la machine représente l'information (ex: les paires pour le ET, ou les injections pour le OU).
-    \item \textbf{Structures de Contrôle} : comment la machine prend des décisions et oriente le flux du calcul (ex: le \texttt{if... then... else...}).
+    \item \textbf{Structures de Données} : comment la machine représente et stocke l'information (ex: les paires pour le ET, ou les injections pour le OU).
+    \item \textbf{Structures de Contrôle} : comment la machine prend des décisions et oriente le flux du calcul en se basant sur ces données.
   \end{enumerate}
 
-  Posséder une disjonction $A \lor B$ en hypothèse forme une structure de donnée \textbf{fermée}, car on ne sait pas a priori quel choix a été fait (injection gauche ou droite). Pour l'exploiter, nous avons besoin d'une structure de contrôle pour ``ouvrir'' cette boîte. La généralisation du \texttt{if} s'appelle le \textbf{Filtrage par Motif} (\texttt{match ... with}). 
-  
-  C'est un aiguillage : ``SI la boîte contient une preuve de $A$, ALORS applique ce raisonnement ; SI elle contient une preuve de $B$, ALORS applique cet autre raisonnement''. C'est ce que génère la tactique \texttt{destruct}.
+  Posséder une disjonction $A \lor B$ en hypothèse garantit qu'un choix a été fait (injection gauche ou droite), mais cela forme une structure de donnée ``fermée'', car on ne sait pas a priori quel choix a été fait. Pour l'exploiter activement dans notre preuve/programme, nous avons besoin d'une structure de contrôle pour ``ouvrir'' cette boîte et faire bifurquer notre raisonnement.
+
+  La structure de contrôle la plus célèbre est le ``if... then... else...''. Sa généralisation s'appelle le ``Filtrage par Motif'' (ou \texttt{match ... with}). C'est une sorte d'aiguillage, qui correspond en fait au raisonnement par cas : ``SI la boîte contient une preuve de A, ALORS applique ce premier raisonnement; SI elle contient une preuve de B, ALORS applique cet autre raisonnement''.
+
+  C'est exactement ce que génère la tactique \texttt{destruct} pour nous !
 \end{remarque}
 
 \begin{lstlisting}
 Lemma OU_symetrie : A \/ B -> B \/ A.
 Proof.
   intros H_ou.
+\end{lstlisting}
+
+Appliquer un \texttt{destruct} avec la barre séparatrice `|' génère deux univers parallèles à gérer individuellement : l'univers où une valeur de type A avait été injectée, et l'univers où une valeur de type B avait été injectée.
+
+\begin{lstlisting}
   destruct H_ou as [x | y].
+\end{lstlisting}
+
+Comme avec la tactique \texttt{split}, Rocq nous génère deux ``sous-buts'', un pour chaque univers.
+
+\begin{lstlisting}
   - (* Cas 1 : La preuve d'origine etait une injection gauche, pour A *)
     right. exact x.
   - (* Cas 2 : La preuve d'origine etait une injection droite, pour B *)
     left. exact y.
 Qed.
+
+Print OU_symetrie.
 \end{lstlisting}
 
 \section{L'Absurdité et la Négation}
 
-Dans un monde constructiviste, la définition de la négation est d'une élégance presque poétique : $\neg A$ est exactement une \textbf{abréviation} pour $A \to \bot$ (où $\bot$ dénote l'absurdité, \texttt{False} dans Rocq). Prouver que $A$ est faux, c'est écrire une fonction qui, si elle recevait une preuve de $A$, réussirait à produire l'absurdité.
+Dans un monde constructiviste, la définition de la négation est d'une élégance presque poétique : $\neg A$ est exactement une \textit{abréviation} pour $A \to \bot$ (où $\bot$ dénote l'absurdité, \texttt{False} dans Rocq). Prouver que $A$ est faux, c'est tout bêtement écrire une fonction qui, si elle recevait une preuve de $A$, réussirait à cracher l'absurdité \texttt{False}.
 
-Et qu'est-ce que \texttt{False} ? C'est le type ultimement vide : il n'a \textbf{aucun habitant}.
+Et qu'est-ce que \texttt{False} ? C'est le type ultimement vide : de par sa conception, il n'a aucun constructeur, donc aucun habitant ! (sinon notre système logique deviendrait trivial à cause du principe d'explosion)
 
 \begin{lstlisting}
 Lemma non_contradiction : ~(A /\ ~A).
 Proof.
+\end{lstlisting}
+
+Gardez en tête que le but est en fait de prouver \texttt{(A /\textbackslash\, (A -> False)) -> False}.
+
+\begin{lstlisting}
   intros H_impossible.
   destruct H_impossible as [a non_a].
+\end{lstlisting}
+
+Nous avons en main \texttt{a : A} et une étrange fonction \texttt{non\_a : A -> False}. Il suffit de faire s'entrechoquer les deux... Modus Ponens !
+
+\begin{lstlisting}
   apply non_a.
   exact a.
 Qed.
 \end{lstlisting}
 
-\subsection*{Le Principe d'Explosion (\emph{Ex Falso Quodlibet})}
+\subsection*{Le Principe d'Explosion (\textit{Ex Falso Quodlibet})}
 
-Si vous obtenez une preuve de \texttt{False} dans votre contexte, c'est que vous avez une contradiction. Et d'une contradiction, vous pouvez déduire N'IMPORTE QUOI. En Rocq, c'est la tactique \texttt{exfalso}.
+Si vous obtenez une preuve de \texttt{False} dans votre contexte, c'est donc que vous avez au moins deux hypothèses contradictoires $A$ et $\neg A$. Et d'une contradiction, vous pouvez déduire N'IMPORTE QUOI. En Rocq, c'est la tactique \texttt{exfalso}.
 
 $$\prftree[r]{$\bot E$}{\Gamma \vdash M : \bot}{\Gamma \vdash \text{abort } M : A}$$
 
@@ -203,38 +268,90 @@ Qed.
 
 \section{La Crise du Constructivisme et le Tiers-Exclu}
 
-L'idéalisme intuitionniste a un revers : le Tiers-Exclu $A \lor \neg A$ n'est pas prouvable de manière générique. Réussir à le prouver reviendrait à posséder l'Algorithme Universel capable de trancher la vérité de n'importe quelle proposition sans calcul. Ce rêve de David Hilbert a été ruiné par Gödel et Turing.
+L'idéalisme intuitionniste a un revers : le Tiers-Exclu $A \lor \neg A$ n'est pas prouvable de manière générique. C'est logique : réussir à le prouver reviendrait à posséder l'Algorithme Universel capable de trancher la vérité de n'importe quelle proposition A sans calcul préalable. Et nous savons tous que ce rêve du mathématicien David Hilbert a été ruiné par le Théorème d'Incomplétude de Gödel et le problème de l'Arrêt de Turing.
 
 \begin{lstlisting}
 Lemma tiers_exclu_fail : A \/ ~A.
 Proof.
-  left. Undo.
-  right. intro H.
+\end{lstlisting}
+
+On peut esquisser une tentative : si on essaye \texttt{left}, l'ordinateur attendra de nous une preuve de A...
+
+\begin{lstlisting}
+  left.
+\end{lstlisting}
+
+... que l'on n'a pas. Annulons avec la commande \texttt{Undo}.
+
+\begin{lstlisting}
+  Undo.
+\end{lstlisting}
+
+Si on essaye \texttt{right}, l'ordinateur attendra qu'on réfute A.
+
+\begin{lstlisting}
+  right.
+  intro H.
+\end{lstlisting}
+
+Enfermés et toujours ignorants du problème précis sous-jacent à la proposition abstraite A, nous ne pouvons que renoncer lâchement avec la commande \texttt{Abort}.
+
+\begin{lstlisting}
 Abort.
 \end{lstlisting}
 
-Pour retrouver la logique classique, on doit imposer le Tiers-Exclu comme une vérité infuse via la commande \texttt{Axiom}.
+Conséquence : si l'on veut retrouver notre zone de confort mathématique (la logique classique et platonicienne de Descartes/Aristote), on doit forcer le système en imposant violemment le principe de Tiers-Exclu comme une vérité infuse via la commande \texttt{Axiom}.
 
 \begin{lstlisting}
 Axiom LEM : forall X : Prop, X \/ ~X.
+\end{lstlisting}
 
+Muni de cette arme redoutable, un nombre vertigineux de théorèmes inaccessibles sur un plan constructiviste (car incomputables) s'offrent de nouveau à nous. La porte étendard de la pensée classique est sans conteste l'Élimination de la Double Négation : (Non-(Non A) alors A).
+
+\begin{lstlisting}
 Lemma double_negation : ~~A -> A.
 Proof.
   intros non_non_a.
+\end{lstlisting}
+
+Pour arracher $A$ au néant, on invoque le Tiers-Exclu \texttt{LEM} en l'instanciant avec $A$. Ensuite, \texttt{destruct} va de nouveau séparer les univers.
+
+\begin{lstlisting}
   destruct (LEM A) as [x | non_a].
-  - exact x.
-  - exfalso. apply non_non_a. exact non_a.
+  - (* L'univers 1 correspond au cas ou (par magie cosmique), A etait vrai.
+       On a A a disposition, la victoire est immédiate. *)
+    exact x.
+  - (* L'univers 2 correspond au cas ou (par magie cosmique), ~A etait vrai.
+       Mais attendez! Notre hypothese de depart [non_non_a] nous jure la main
+       sur le coeur que [~A -> False] ! La contradiction est totale. *)
+    exfalso.
+    apply non_non_a.
+    exact non_a.
 Qed.
 \end{lstlisting}
 
 \section{Exercices à faire}
 
-\begin{exercice}{Lois de De Morgan (Sens Intuitionniste)}{}
-  Prouver formellement $(A \lor B) \to \neg(\neg A \land \neg B)$. Ce sens est constructif, nul besoin du Tiers-Exclu !
+\begin{exercice}{Logique de De Morgan}{}
+  Prouver formellement un côté des fameuses Lois de De Morgan. Ce sens-ci est tout à fait harmonieux avec la pensée constructiviste (NUL BESOIN d'utiliser le Tiers-Exclu \texttt{LEM}, que des règles habituelles !).
+
+\begin{lstlisting}
+Lemma de_morgan_1 : (A \/ B) -> ~(~A /\ ~B).
+Proof.
+  (* ECRIVEZ VOTRE PREUVE ICI *)
+Admitted.
+\end{lstlisting}
 \end{exercice}
 
-\begin{exercice}{Lois de De Morgan (Sens Classique)}{}
-  Prouver la réciproque $\neg(\neg A \land \neg B) \to (A \lor B)$. Attention : ici le constructivisme est paralysé, vous devrez utiliser l'axiome \texttt{LEM}.
+\begin{exercice}{Le Sens Classique}{}
+  Prouvez enfin sa monstrueuse réciproque ! Attention : dans ce sens, le constructivisme est paralysé. Vous n'aurez d'autre choix que de brandir le Tiers Exclu en effectuant des raisonnements par cas sur $A \lor \neg A$ ou $B \lor \neg B$ pour espérer craquer la coquille et conclure.
+
+\begin{lstlisting}
+Lemma de_morgan_2 : ~(~A /\ ~B) -> (A \/ B).
+Proof.
+  (* ECRIVEZ VOTRE PREUVE ICI *)
+Admitted.
+\end{lstlisting}
 \end{exercice}
 
 \begin{lstlisting}
