@@ -12,32 +12,6 @@ Variables (A B C D : Prop).
 
 (** # Connectives *)
 
-(** ## Tutorial *)
-
-(** ### Implication *)
-
-Lemma tautologie_1 :
-  A -> B -> A.
-Proof.
-  (* À compléter *)
-Admitted.
-Print tautologie_1.
-
-Lemma tautologie_2 :
-  A -> (A -> B) -> B.
-Proof.
-  (* À compléter *)
-Admitted.
-Print tautologie_2.
-
-Lemma tautologie_3 :
-  (B -> C) -> (A -> B) -> (A -> C).
-Proof.
-  (* À compléter *)
-Admitted.
-Print tautologie_3.
-
-
 (** ### Conjunction *)
 
 Lemma tautologie_4 :
