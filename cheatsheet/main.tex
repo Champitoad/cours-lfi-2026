@@ -81,7 +81,7 @@ Dans le mode \textbf{Preuve Interactive}, les tactiques construisent le $\lambda
   Pour un but $A \land B$, crée deux sous-buts $A$ et $B$. &
   \textbf{$\land$-Introduction} \newline (Formation de paire) \newline
   \vspace{0.2cm} \newline
-  \resizebox{\linewidth}{!}{$\prftree[r]{${\land}I$}{\Gamma \vdash M : A}{\Gamma \vdash N : B}{\Gamma \vdash (M, N) : A \land B}$} \\
+  $\prftree[r]{${\land}I$}{\Gamma \vdash M : A}{\Gamma \vdash N : B}{\Gamma \vdash (M, N) : A \land B}$ \\
   \midrule
   \texttt{destruct H as [x y].} &
   Pour $H : A \land B$, extrait les preuves $x:A$ et $y:B$. &
