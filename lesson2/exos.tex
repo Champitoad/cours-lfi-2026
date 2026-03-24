@@ -1,0 +1,244 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{xcolor}
+\usepackage{listingsutf8}
+\usepackage[most]{tcolorbox}
+\usepackage{prftree}
+\usepackage{hyperref}
+\usepackage{newunicodechar}
+
+\newunicodechar{ι}{\ensuremath{\iota}}
+\newunicodechar{₁}{\ensuremath{_1}}
+\newunicodechar{₂}{\ensuremath{_2}}
+
+\newtcbtheorem{remarque}{Remarque}{
+  colback=blue!5!white,
+  colframe=blue!75!black,
+  fonttitle=\bfseries,
+  breakable,
+  enhanced
+}{rem}
+
+\newtcbtheorem{exercice}{Exercice}{
+  colback=green!5!white,
+  colframe=green!40!black,
+  fonttitle=\bfseries,
+  breakable,
+  enhanced
+}{exo}
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\lstset{
+  language=ML,
+  inputencoding=utf8,
+  backgroundcolor=\color{backcolour},
+  commentstyle=\color{codegreen},
+  keywordstyle=\color{blue}\bfseries,
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{lightgray},
+  showstringspaces=false,
+  extendedchars=true,
+  literate={ι}{{$\iota$}}1 {₁}{{$_1$}}1 {₂}{{$_2$}}1 {é}{{\'e}}1 {è}{{\`e}}1 {à}{{\`a}}1 {ù}{{\`u}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+}
+
+\makeatletter
+\newcommand{\subtitle}[1]{%
+  \gdef\@subtitle{#1}%
+}
+\let\oldmaketitle\maketitle
+\renewcommand{\maketitle}{%
+  \let\oldtitle\@title
+  \renewcommand{\@title}{\oldtitle\\[1em]\Large\normalfont\@subtitle}%
+  \oldmaketitle
+}
+\makeatother
+
+\title{LEÇON 2 : Logique Propositionnelle et Constructivisme}
+\subtitle{Connecteurs ET, OU et Négation}
+\date{24/03/2026}
+\author{Pablo Donato}
+
+\begin{document}
+
+\maketitle
+
+Après avoir exploré l'implication ($\to$), notre voyage au cœur de la correspondance de Curry-Howard se poursuit. Aujourd'hui, nous allons découvrir comment Rocq traite la Conjonction (ET), la Disjonction (OU), et l'Absurdité (NON).
+
+Nous adopterons une perspective profondément constructiviste (la sémantique Brouwer-Heyting-Kolmogorov, ou BHK), où chaque connecteur logique n'est pas une simple table de vérité, mais une véritable \textbf{structure de données} informatique construite par nos soins !
+
+\begin{lstlisting}
+Notation "( x , y )" := (conj x y).
+Notation "'ι₁'" := or_introl (at level 0).
+Notation "'ι₂'" := or_intror (at level 0).
+
+Section Lesson2.
+
+Variables A B C : Prop.
+\end{lstlisting}
+
+\section{La Conjonction (Le ET : $\land$)}
+
+En logique de la réalisation (constructivisme), posséder une preuve formelle de $A \land B$, c'est posséder indépendamment une preuve de $A$ ET une preuve de $B$. Informatiquement, cela correspond exactement à la notion de \textbf{paire} (ou ``tuple'').
+
+La règle d'introduction de la conjonction en déduction naturelle est la suivante :
+$$\prftree[r]{${\land}I$}{\Gamma \vdash M : A}{\Gamma \vdash N : B}{\Gamma \vdash (M, N) : A \land B}$$
+
+Pour construire/introduire une telle paire dans Rocq, nous utilisons la tactique \texttt{split}.
+
+\begin{lstlisting}
+Lemma ET_intro : A -> B -> A /\ B.
+Proof.
+  intros x y.
+  split.
+  - exact x.
+  - exact y.
+Qed.
+
+Print ET_intro.
+\end{lstlisting}
+
+\begin{remarque}{}{}
+  Observons le terme final. Le compilateur nous montre que le terme de preuve est bel et bien structuré comme une paire !
+\end{remarque}
+
+À l'inverse, si nous \emph{avons} une hypothèse de type $A \land B$, nous pouvons la ``détruire'' pour en extraire les deux composants sous-jacents, grâce à la commande \texttt{destruct}. Cela correspond aux \textbf{projections} $\pi_1$ et $\pi_2$ :
+$$\prftree[r]{${\land}E_1$}{\Gamma \vdash M : A \land B}{\Gamma \vdash \pi_1 M : A} \qquad \prftree[r]{${\land}E_2$}{\Gamma \vdash M : A \land B}{\Gamma \vdash \pi_2 M : B}$$
+
+\begin{lstlisting}
+Lemma ET_symetrie : A /\ B -> B /\ A.
+Proof.
+  intros H_ab.
+  destruct H_ab as [x y].
+  split.
+  - exact y.
+  - exact x.
+Qed.
+\end{lstlisting}
+
+\section{La Disjonction (Le OU : $\lor$)}
+
+Voici le grand point de rupture du constructivisme ! Pour prouver $A \lor B$, vous ne pouvez pas joyeusement affirmer ``bon, l'un des deux doit être vrai'', sans savoir lequel. Vous DEVEZ exhiber consciemment une preuve ou bien de $A$, ou bien de $B$.
+
+Informatiquement, c'est ce qu'on appelle un \textbf{type somme}. L'ordinateur conserve la trace indélébile du choix effectué via des fonctions d'injection : \texttt{left} correspond à $\iota_1$ et \texttt{right} correspond à $\iota_2$.
+
+$$\prftree[r]{${\lor}I_1$}{\Gamma \vdash M : A}{\Gamma \vdash \iota_1 M : A \lor B} \qquad \prftree[r]{${\lor}I_2$}{\Gamma \vdash N : B}{\Gamma \vdash \iota_2 N : A \lor B}$$
+
+\begin{lstlisting}
+Lemma OU_intro_gauche : A -> A \/ B.
+Proof.
+  intros x.
+  left.
+  exact x.
+Qed.
+
+(** On constate que le terme de preuve final est l'application de l'injection 
+    gauche [ι₁] à la variable [x] de type [A].
+    On note aussi que le type [B] est passé en argument juste avant [x] : c'est
+    parce que Rocq a besoin de stocker le type de la branche inutilisée... *)
+Print OU_intro_gauche.
+\end{lstlisting}
+
+\begin{remarque}{Structures de Données vs Contrôle}{val}
+  En informatique, on sépare généralement deux grands piliers :
+  \begin{enumerate}
+    \item \textbf{Structures de Données} : comment la machine représente l'information (ex: les paires pour le ET, ou les injections pour le OU).
+    \item \textbf{Structures de Contrôle} : comment la machine prend des décisions et oriente le flux du calcul (ex: le \texttt{if... then... else...}).
+  \end{enumerate}
+
+  Posséder une disjonction $A \lor B$ en hypothèse forme une structure de donnée \textbf{fermée}, car on ne sait pas a priori quel choix a été fait (injection gauche ou droite). Pour l'exploiter, nous avons besoin d'une structure de contrôle pour ``ouvrir'' cette boîte. La généralisation du \texttt{if} s'appelle le \textbf{Filtrage par Motif} (\texttt{match ... with}). 
+  
+  C'est un aiguillage : ``SI la boîte contient une preuve de $A$, ALORS applique ce raisonnement ; SI elle contient une preuve de $B$, ALORS applique cet autre raisonnement''. C'est ce que génère la tactique \texttt{destruct}.
+\end{remarque}
+
+\begin{lstlisting}
+Lemma OU_symetrie : A \/ B -> B \/ A.
+Proof.
+  intros H_ou.
+  destruct H_ou as [x | y].
+  - (* Cas 1 : La preuve d'origine etait une injection gauche, pour A *)
+    right. exact x.
+  - (* Cas 2 : La preuve d'origine etait une injection droite, pour B *)
+    left. exact y.
+Qed.
+\end{lstlisting}
+
+\section{L'Absurdité et la Négation}
+
+Dans un monde constructiviste, la définition de la négation est d'une élégance presque poétique : $\neg A$ est exactement une \textbf{abréviation} pour $A \to \bot$ (où $\bot$ dénote l'absurdité, \texttt{False} dans Rocq). Prouver que $A$ est faux, c'est écrire une fonction qui, si elle recevait une preuve de $A$, réussirait à produire l'absurdité.
+
+Et qu'est-ce que \texttt{False} ? C'est le type ultimement vide : il n'a \textbf{aucun habitant}.
+
+\begin{lstlisting}
+Lemma non_contradiction : ~(A /\ ~A).
+Proof.
+  intros H_impossible.
+  destruct H_impossible as [a non_a].
+  apply non_a.
+  exact a.
+Qed.
+\end{lstlisting}
+
+\subsection*{Le Principe d'Explosion (\emph{Ex Falso Quodlibet})}
+
+Si vous obtenez une preuve de \texttt{False} dans votre contexte, c'est que vous avez une contradiction. Et d'une contradiction, vous pouvez déduire N'IMPORTE QUOI. En Rocq, c'est la tactique \texttt{exfalso}.
+
+$$\prftree[r]{$\bot E$}{\Gamma \vdash M : \bot}{\Gamma \vdash \text{abort } M : A}$$
+
+\begin{lstlisting}
+Lemma explosion : False -> A.
+Proof.
+  intro f.
+  exfalso.
+  exact f.
+Qed.
+\end{lstlisting}
+
+\section{La Crise du Constructivisme et le Tiers-Exclu}
+
+L'idéalisme intuitionniste a un revers : le Tiers-Exclu $A \lor \neg A$ n'est pas prouvable de manière générique. Réussir à le prouver reviendrait à posséder l'Algorithme Universel capable de trancher la vérité de n'importe quelle proposition sans calcul. Ce rêve de David Hilbert a été ruiné par Gödel et Turing.
+
+\begin{lstlisting}
+Lemma tiers_exclu_fail : A \/ ~A.
+Proof.
+  left. Undo.
+  right. intro H.
+Abort.
+\end{lstlisting}
+
+Pour retrouver la logique classique, on doit imposer le Tiers-Exclu comme une vérité infuse via la commande \texttt{Axiom}.
+
+\begin{lstlisting}
+Axiom LEM : forall X : Prop, X \/ ~X.
+
+Lemma double_negation : ~~A -> A.
+Proof.
+  intros non_non_a.
+  destruct (LEM A) as [x | non_a].
+  - exact x.
+  - exfalso. apply non_non_a. exact non_a.
+Qed.
+\end{lstlisting}
+
+\section{Exercices à faire}
+
+\begin{exercice}{Lois de De Morgan (Sens Intuitionniste)}{}
+  Prouver formellement $(A \lor B) \to \neg(\neg A \land \neg B)$. Ce sens est constructif, nul besoin du Tiers-Exclu !
+\end{exercice}
+
+\begin{exercice}{Lois de De Morgan (Sens Classique)}{}
+  Prouver la réciproque $\neg(\neg A \land \neg B) \to (A \lor B)$. Attention : ici le constructivisme est paralysé, vous devrez utiliser l'axiome \texttt{LEM}.
+\end{exercice}
+
+\begin{lstlisting}
+End Lesson2.
+\end{lstlisting}
+
+\end{document}
