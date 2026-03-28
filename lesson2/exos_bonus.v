@@ -260,7 +260,7 @@ Admitted.
 Print tautologie_37.
 
 Lemma tautologie_38 :
-  (A /\ B -> C) <-> A -> B -> C.
+  (A /\ B -> C) <-> (A -> B -> C).
 Proof.
   (* À compléter *)
 Admitted.
@@ -360,13 +360,6 @@ Print tautologie_50.
 (** ### Classical logic *)
 
 Axiom LEM : forall A, A \/ ~A.
-
-Lemma tautologie_51 :
-  (A /\ B -> A /\ C) -> A /\ (B -> C).
-Proof.
-  (* À compléter *)
-Admitted.
-Print tautologie_51.
 
 Lemma tautologie_52 :
   (A -> (B \/ C)) -> (A -> B) \/ (A -> C).
