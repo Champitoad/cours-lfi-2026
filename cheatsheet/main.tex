@@ -71,6 +71,12 @@ Dans le mode \textbf{Preuve Interactive}, les tactiques construisent le $\lambda
   \vspace{0.2cm} \newline
   $\prftree[r]{Var}{\Gamma, x : A \vdash x : A}$ \\
   \midrule
+  \texttt{assumption.} &
+  Résout le but courant s'il correspond \emph{exactement} à l'une des hypothèses (recherche automatique au lieu de nommer). &
+  \textbf{Variante "axiome"} \newline (Idem \texttt{exact}) \newline
+  \vspace{0.2cm} \newline
+  $\prftree[r]{Var}{\Gamma, H : A \vdash H : A}$ \\
+  \midrule
   \texttt{apply f.} &
   Si le but est $B$ et qu'on a $f : A \to B$, change le but en $A$ (raisonnement arrière). &
   \textbf{$\to$-Élimination} \newline (Modus Ponens / Application) \newline
@@ -112,6 +118,12 @@ Dans le mode \textbf{Preuve Interactive}, les tactiques construisent le $\lambda
   \textbf{Principe d'Explosion} \newline (\textit{Ex Falso Quodlibet}) \newline
   \vspace{0.2cm} \newline
   $\prftree[r]{$\bot$E}{\Gamma \vdash M : \bot}{\Gamma \vdash \texttt{abort } M : A}$ \\
+  \midrule
+  \texttt{admit.} &
+  Accepte le but courant sans preuve. \newline \textit{N.B. : La validation finale d'un lemme contenant \texttt{admit} requiert \texttt{Admitted} au lieu de \texttt{Qed}.} &
+  \begin{center}
+    ---
+  \end{center}\\
   \bottomrule
 \end{xltabular}
 
