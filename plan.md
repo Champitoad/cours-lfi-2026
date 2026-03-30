@@ -8,13 +8,13 @@
 - **Concepts:** Backward reasoning via natural deduction rules. Introducing the standard logical connectives (∧, ∨, →, ¬, ⊥) as black boxes first.
 - **Hands-on:** Tactics for connectives (split, left/right, destruct, intro for negation). Proving basic propositional tautologies.
 
-## Week 3: The Meaning of Logical Constants (Epistemology of Data Types)
-- **Concepts:** Martin-Löf's justification of logical laws. Verificationist meaning (Constructors) vs. Pragmatist meaning (Eliminators/Pattern matching). Opening on Dummett's harmony (quick reference to Zeilberger's "On the unity of duality" for applications to programming?) and/or Church encodings in the Calculus of Constructions.
-- **Hands-on:** Looking under the hood. How `and` and `or` are actually defined in Rocq using `Inductive`. Using `match ... with` to manually destruct proofs instead of using the `destruct` tactic.
-
-## Week 4: First-Order Logic & Equality
+## Week 3: First-Order Logic & Equality
 - **Concepts:** Universal (∀) and existential (∃) quantification. The Π-type in dependent type theory. Leibniz equality vs. definitional equality.
 - **Hands-on:** Tactics `exists`, `rewrite`, `reflexivity`. Proving basic syllogisms and quantifier equivalences.
+
+## Week 4: The Meaning of Logical Constants (Epistemology of Data Types)
+- **Concepts:** Martin-Löf's justification of logical laws. Verificationist meaning (Constructors) vs. Pragmatist meaning (Eliminators/Pattern matching). Opening on Dummett's harmony (quick reference to Zeilberger's "On the unity of duality" for applications to programming?) and/or Church encodings in the Calculus of Constructions.
+- **Hands-on:** Looking under the hood. How `and` and `or` are actually defined in Rocq using `Inductive`. Using `match ... with` to manually destruct proofs instead of using the `destruct` tactic.
 
 ## Week 5: Induction & Functional Programming
 - **Concepts:** Peano arithmetic. Inductive types for data (Natural numbers, Lists) rather than propositions. Recursive functions.

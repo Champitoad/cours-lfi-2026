@@ -1,0 +1,266 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{xcolor}
+\usepackage{listingsutf8}
+\usepackage[most]{tcolorbox}
+\usepackage{prftree}
+\usepackage{hyperref}
+\usepackage{newunicodechar}
+
+\newunicodechar{ι}{\ensuremath{\iota}}
+\newunicodechar{₁}{\ensuremath{_1}}
+\newunicodechar{₂}{\ensuremath{_2}}
+
+\newtcbtheorem{remarque}{Remarque}{
+  colback=blue!5!white,
+  colframe=blue!75!black,
+  fonttitle=\bfseries,
+  breakable,
+  enhanced
+}{rem}
+
+\newtcbtheorem{exercice}{Exercice}{
+  colback=green!5!white,
+  colframe=green!40!black,
+  fonttitle=\bfseries,
+  breakable,
+  enhanced
+}{exo}
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\lstset{
+  language=ML,
+  inputencoding=utf8,
+  backgroundcolor=\color{backcolour},
+  commentstyle=\color{codegreen},
+  keywordstyle=\color{blue}\bfseries,
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{lightgray},
+  showstringspaces=false,
+  extendedchars=true,
+  literate={ι}{{$\iota$}}1 {₁}{{$_1$}}1 {₂}{{$_2$}}1 {é}{{\'e}}1 {è}{{\`e}}1 {à}{{\`a}}1 {ù}{{\`u}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+}
+
+\makeatletter
+\newcommand{\subtitle}[1]{%
+  \gdef\@subtitle{#1}%
+}
+\let\oldmaketitle\maketitle
+\renewcommand{\maketitle}{%
+  \let\oldtitle\@title
+  \renewcommand{\@title}{\oldtitle\\[1em]\Large\normalfont\@subtitle}%
+  \oldmaketitle
+}
+\makeatother
+
+\title{LEÇON 3 : Logique du Premier Ordre et Égalité}
+\subtitle{Quantificateurs universels, existentiels et règles équationnelles}
+\date{31/03/2026}
+\author{Pablo Donato}
+
+\begin{document}
+
+\maketitle
+
+Après avoir exploré la logique propositionnelle, nous passons aujourd'hui à la logique des prédicats. Nous allons voir comment Rocq gère les quantificateurs universels ($\forall$) et existentiels ($\exists$), ainsi que la notion fondamentale d'égalité.
+
+Dans Rocq, les prédicats sont simplement des fonctions qui renvoient une proposition (\texttt{Prop}). Par exemple, un prédicat unaire \texttt{P} qui a pour domaine l'ensemble des éléments de type \texttt{T} a le type \texttt{T -> Prop}.
+
+\begin{lstlisting}
+Section Lesson3.
+
+Variable T : Type.
+Variable P Q : T -> Prop.
+Variable R : T -> T -> Prop.
+\end{lstlisting}
+
+On se souvient qu'une fonction avec une arité $n > 1$ peut être représentée en $\lambda$-calcul par une fonction d'\emph{ordre supérieur}, qui consomme le premier argument et retourne une fonction d'arité $n$ pour les arguments suivants\footnote{Cette technique permettant de passer de l'ensemble/type des fonctions $A \times B \to C$ au type $A \to (B \to C)$ est souvent appelée ``curryfication'', en référence au logicien Haskell Curry qui l'utilisait extensivement. Il a aussi donné son nom au populaire langage de programmation fonctionnelle \texttt{Haskell}.}. Le même principe s'applique donc aux \emph{relations} (prédicats $n$-aires), comme illustré ci-dessus par la relation binaire \texttt{R}.
+
+\section{Le Quantificateur Universel (Pour Tout : $\forall$)}
+
+En logique, affirmer ``Pour tout individu $x$, $P(x)$ est vrai'' signifie que si on me donne n'importe quel individu $x$, je peux fournir une preuve de $P(x)$.
+
+Informatiquement (grâce à Curry-Howard), c'est une FONCTION ! Une fonction qui prend en argument un élément \texttt{x} de type \texttt{T}, et qui renvoie une preuve du type \texttt{P x}. C'est ce qu'on appelle un \textbf{type dépendant} (le type de retour dépend de la valeur de l'argument).
+
+Ainsi, l'implication simple $A \to B$ que nous connaissons bien n'est en fait qu'un $\forall$ dégénéré où le type de retour ne dépend pas de l'argument ! C'est pour cela qu'on utilise la même tactique \texttt{intro} / \texttt{intros}.
+
+$$\prftree[r]{${\forall}I$}{\Gamma, x : T \vdash M : P(x)}{\Gamma \vdash \lambda x. M : \forall x : T. P(x)}$$
+
+\begin{lstlisting}
+Lemma forall_intro : (forall x : T, P x -> Q x) -> (forall x : T, P x) -> (forall y : T, Q y).
+Proof.
+  intros H_impl H_P.
+\end{lstlisting}
+
+Notre but commence par \texttt{forall y : T, ...}. Nous voulons prouver que la propriété est vraie pour un \texttt{y} arbitraire. Nous l'introduisons dans le contexte.
+
+\begin{lstlisting}
+  intro y.
+\end{lstlisting}
+
+Maintenant que nous avons un \texttt{y} spécifique (mais quelconque), notre but est \texttt{Q y}.
+
+\begin{lstlisting}
+  apply H_impl.
+\end{lstlisting}
+
+\begin{remarque}{L'Unification Magique}{}
+  Comment Rocq a-t-il su utiliser \texttt{H\_impl} ? Notre hypothèse \texttt{H\_impl} est une démonstration abstraite valable pour \textit{n'importe quel} individu $x$. Or notre but était de prouver \texttt{Q y}. Sous le capot, Rocq a "superposé" la conclusion de l'hypothèse (\texttt{Q x}) avec notre but actuel (\texttt{Q y}). Il a déduit de lui-même qu'il fallait instancier l'inconnue abstraite $x$ par l'individu concret $y$ pour que la superposition soit parfaite !
+  
+  Ce processus purement mécanique de mise en correspondance de deux expressions (ou arbres syntaxiques) pour déterminer l'identité des variables s'appelle l'\textbf{unification}. Il libère l'utilisateur de l'obligation de préciser systématiquement l'individu pour lequel il applique un théorème universel.
+\end{remarque}
+
+\begin{lstlisting}
+  apply H_P.
+Qed.
+\end{lstlisting}
+
+\section{Le Quantificateur Existentiel (Il Existe : $\exists$)}
+
+Du point de vue constructiviste, prouver ``Il existe un $x$ tel que $P(x)$'', ce n'est pas simplement dire ``ça doit bien exister quelque part''. Il faut EN EXHIBER UN !
+
+Une preuve d'existence est donc une PAIRE constituée de :
+\begin{enumerate}
+  \item Un ``témoin'' $x$ de type $T$ (la valeur concrète).
+  \item Une preuve que ce témoin $x$ satisfait bien la propriété $P$.
+\end{enumerate}
+
+Pour construire une telle existence, on utilise la tactique \texttt{exists} en lui fournissant notre témoin.
+
+$$\prftree[r]{${\exists}I$}{\Gamma \vdash t : T \qquad \Gamma \vdash M : P(t)}{\Gamma \vdash (t, M) : \exists x : T, P(x)}$$
+
+\begin{lstlisting}
+Variable t_defaut : T.
+
+Lemma exists_intro : (forall x : T, P x) -> (exists y : T, P y \/ Q y).
+Proof.
+  intros H_P.
+\end{lstlisting}
+
+Nous utilisons notre élément \texttt{t\_defaut} (qu'on a supposé par avance exister dans notre contexte pour éviter l'échec sur les domaines vides) comme témoin de l'existence.
+
+\begin{lstlisting}
+  exists t_defaut.
+\end{lstlisting}
+
+Remarquez que le but a changé : Rocq a remplacé tous les \texttt{y} par \texttt{t\_defaut}. Il ne nous reste plus qu'à en donner la preuve.
+
+\begin{lstlisting}
+  left.
+  apply H_P.
+Qed.
+\end{lstlisting}
+
+À l'inverse, si nous possèdons une hypothèse existentielle $\exists x, P(x)$, nous voulons en extraire le témoin et la preuve associée. Comme c'est une paire sous le capot (tout comme le ET), on utilise la tactique \texttt{destruct}.
+
+\begin{lstlisting}
+Lemma exists_elim : (exists x : T, P x /\ Q x) -> (exists y : T, P y).
+Proof.
+  intros H_exists.
+\end{lstlisting}
+
+On détruit l'hypothèse pour récupérer le témoin (que l'on nomme \texttt{x0}) et la preuve qu'il satisfait la propriété (qu'on nommera \texttt{H\_PQ}).
+
+\begin{lstlisting}
+  destruct H_exists as [x0 H_PQ].
+  destruct H_PQ as [H_P H_Q].
+  exists x0.
+  exact H_P.
+Qed.
+\end{lstlisting}
+
+\section{L'Égalité Propositionnelle (=)}
+
+En mathématiques, l'égalité est la notion la plus fondamentale. Dans Rocq, \texttt{x = y} est une proposition. Dire que \texttt{x = y} est prouvable, c'est dire que $x$ et $y$ représentent formellement le même objet.
+
+L'outil principal pour manipuler l'égalité est la RÈGLE DE SUBSTITUTION : Si $x = y$, alors tout ce qui est vrai pour $x$ est vrai pour $y$. C'est la tactique \texttt{rewrite}.
+
+\begin{remarque}{Le Principe de Leibniz}{leibniz}
+  Ce comportement d'indiscernabilité des identiques trouve ses racines logiques dans le principe d'égalité de Leibniz (la substitution des identiques \textit{salva veritate}), dont nous reparlerons plus longuement la semaine prochaine au moment d'aborder la définition inductive formelle sous-jacente de l'égalité !
+\end{remarque}
+
+\begin{lstlisting}
+Lemma egalite_sym : forall x y : T, x = y -> y = x.
+Proof.
+  intros x y H_eq.
+\end{lstlisting}
+
+Nous savons que $x$ et $y$ sont égaux (hypothèse \texttt{H\_eq}). Nous voulons prouver $y = x$. La tactique \texttt{rewrite} permet de remplacer le membre gauche de l'égalité par le membre droit partout dans le but.
+
+\begin{lstlisting}
+  rewrite H_eq.
+\end{lstlisting}
+
+Notre but s'est transformé en $y = y$. La tactique \texttt{reflexivity} prouve instantanément que tout terme est égal à lui-même.
+
+\begin{lstlisting}
+  reflexivity.
+Qed.
+\end{lstlisting}
+
+\section{Égalité Définitionnelle vs Propositionnelle}
+
+Rocq distingue deux types d'égalités :
+\begin{enumerate}
+  \item \textbf{L'égalité PROPOSITIONNELLE} ($x = y$) : c'est un énoncé logique qu'il faut prouver (par exemple avec \texttt{rewrite}, en appliquant des lemmes).
+  \item \textbf{L'égalité DÉFINITIONNELLE} ($\equiv$) : c'est le fait que deux expressions se ``calculent'' pour donner le même résultat de manière purement mécanique (via réduction $\beta$, expansion de définitions paramétrées en $\delta$).
+\end{enumerate}
+
+La magie, c'est que la tactique \texttt{reflexivity} réussit \textit{modulo} l'égalité définitionnelle ! Le système évalue discrètement les termes.
+
+\begin{lstlisting}
+Definition doubler (n : nat) : nat := n + n.
+
+Lemma reflexivite_puissante : doubler 2 = 4.
+Proof.
+\end{lstlisting}
+
+Pour un mathématicien sur papier, il y a un petit travail de démonstration ici. Mais pour Rocq, \texttt{doubler 2} s'évalue mécaniquement en $2 + 2$, puis en $4$. Ensuite il constate que $4 \equiv 4$ est correct et conclut.
+
+\begin{lstlisting}
+  reflexivity.
+Qed.
+\end{lstlisting}
+
+\begin{remarque}{Calcul Automatique}{}
+  C'est cette intégration du calcul AU CŒUR MÊME des règles de déduction qui fait la puissance inouïe des théories des types dépendantes par rapport à la philosophie logique classique sur papier ! L'ordinateur travaille littéralement pour nous.
+\end{remarque}
+
+\section{Exercices à faire}
+
+\begin{exercice}{Transitivité de l'égalité}{}
+  Prouvez formellement que l'égalité propositionnelle est transitive.
+
+\begin{lstlisting}
+Lemma egalite_trans : forall x y z : T, x = y -> y = z -> x = z.
+Proof.
+  (* ECRIVEZ VOTRE PREUVE ICI *)
+Admitted.
+\end{lstlisting}
+\end{exercice}
+
+\begin{exercice}{Raisonnement Équationnel Pratique}{}
+  Montrez comment utiliser \texttt{rewrite} pour substituer $y$ par $z$ au sein du prédicat binaire $R$.
+
+\begin{lstlisting}
+Lemma equation_exemple : forall x y z : T,
+  R x y -> y = z -> R x z.
+Proof.
+  (* ECRIVEZ VOTRE PREUVE ICI *)
+Admitted.
+\end{lstlisting}
+\end{exercice}
+
+\begin{lstlisting}
+End Lesson3.
+\end{lstlisting}
+
+\end{document}

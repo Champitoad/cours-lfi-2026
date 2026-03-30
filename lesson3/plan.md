@@ -1,0 +1,12 @@
+# Logique des prédicats
+
+Le but est d'introduire la syntaxe pour raisonner en logique des prédicats dans Rocq :
+
+1. au niveau des propositions avec prédicats vus comme fonction `T_1 -> ... -> T_n -> Prop` (avec `T_i` des types correspondant à des domaines de quantifications hétérogènes, incluant des types flèches pour la logique d'ordre supérieur), quantificateurs `∀/∃`, et égalité propositionnelle `=`;
+2. au niveau des termes avec les prédicats encodés comme des $\lambda$-termes (idée originale de Church, et motivation originelle du $\lambda$-calcul comme framework fondationnel pour faire des mathématiques), mais aussi les habitants des propositions universels/existentiels correspondant aux fonctions/paires (rapide mention des types dépendants comme généralisation de cette idée en remplaçant `Prop` par `Type`, en pensant à bien introduire le concept de "type des types"/"type univers" en laissant ouverte la question de comment la consistence est garantie, i.e. comment l'équivalent du paradoxe de Russell (paradoxe de Girard) est évité)
+3. au niveau des tactiques:
+  - en insistant sur la correspondance `->`/`∀` (resp. `/\`/`∃`) du fait qu'ils sont manipulés avec les mêmes tactiques `intros`/`apply` (resp. `destruct`);
+  - puis en introduisant l'utilisation/élimination de l'égalité propositionnelle pour la réécriture avec `rewrite`, et le lien avec le raisonnement équationnel habituel en algèbre comme on l'apprend à l'école (on laisse pour la prochaine leçon la justification de ce comportement par le principe de Leibniz, lui-même justifié par le principe d'élimination de la définition inductive de l'égalité (Leibniz justifié par le vérificationnisme !));
+  - finalement en introduisant la tactique `reflexivity` pour l'égalité, en notant que pour qu'elle ne soit pas trop triviale, on a besoin qu'elle fonctionne modulo une autre notion d'égalité dite "définitionnelle", qui inclut principalement la $\beta$ et $\eta$-équivalence ainsi que le déroulage de définitions fournies par l'utilisateur (illustration avec un exemple basique style `2 + 2 = 4`).
+
+Ça fait déjà beaucoup de concepts à voir ! J'imaginais pour cette séance qu'on pourrait introduire pour chaque notion les 3 niveaux immédiatement, en alternant entre les slides et un script Rocq pour illustrer en live sur des exemples. Il faudrait donc me préparer additionnellement pour cette séance (et peut-être on pourra réitérer cela à l'avenir si ça s'avère bien fonctionner lors du cours) un script Rocq `cours.v` qui va de paire avec les slides.
