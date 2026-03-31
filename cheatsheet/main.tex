@@ -8,6 +8,8 @@
 \usepackage{tabularx}
 \usepackage{booktabs}
 \usepackage{xcolor}
+\newcommand{\term}[1]{\textcolor{red}{#1}}
+\newcommand{\type}[1]{\textcolor{blue}{#1}}
 \usepackage{prftree}
 \usepackage{graphicx}
 \usepackage{xltabular}
@@ -45,6 +47,10 @@
   Injections & $\iota_1, \iota_2$ & \texttt{ι₁, ι₂} \\
   Négation (NON) & $\neg A$ & \texttt{\textasciitilde A} ou \texttt{not A} \\
   Absurdité & $\bot$ & \texttt{False} \\
+  \midrule
+  Quantificateur Universel & $\forall x. M$ & \texttt{forall x, M} \\
+  Quantificateur Existentiel & $\exists x. M$ & \texttt{exists x, M} \\
+  Égalité Propositionnelle & $x = y$ & \texttt{x = y} \\
   \bottomrule
 \end{tabularx}
 
@@ -52,10 +58,11 @@
 
 \section*{2. Tactiques et Déduction Naturelle}
 
-Dans le mode \textbf{Preuve Interactive}, les tactiques construisent le $\lambda$-terme à l'envers (en remontant de la conclusion vers les prémisses de l'arbre de dérivation).
+Dans le mode \textbf{Preuve Interactive}, les tactiques construisent le $\lambda$-terme à l'envers (en remontant de la conclusion vers les prémisses de l'arbre de dérivation en déduction naturelle). Dans la suite, on utilise la notation ${?}M$ pour indiquer une \emph{variable existentielle}, i.e. un terme qu'il reste à fournir par l'utilisateur, correspondant à une prémisse ouverte de la dérivation en cours de construction.
 
 \vspace{0.5cm}
 \begin{xltabular}{\textwidth}{@{} l X X @{}}
+  \multicolumn{3}{c}{\textit{--- Tactiques \og Backward \fg\ (Raisonnement en arrière) ---}} \\
   \toprule
   \textbf{Tactique Rocq} & \textbf{Effet sur le Séquent (Contexte $\vdash$ But)} & \textbf{Règle de Déduction Naturelle} \\
   \midrule
@@ -63,49 +70,87 @@ Dans le mode \textbf{Preuve Interactive}, les tactiques construisent le $\lambda
   Prend l'antécédant $A$ du but ($A \to B$) et l'introduit comme nouvelle hypothèse dans le contexte sous le nom \texttt{x}. Le but devient $B$. &
   \textbf{$\to$-Introduction} \newline (Abstraction en $\lambda$-calcul) \newline
   \vspace{0.2cm} \newline
-  $\prftree[r]{Abs}{\Gamma, x : A \vdash M : B}{\Gamma \vdash \lambda x.M : A \to B}$ \\
+  $\prftree[r]{Abs}{\Gamma, \term{x} : \type{A} \vdash \term{{?}M} : \type{B}}{\Gamma \vdash \term{\lambda x.{?}M} : \type{A \to B}}$ \\
   \midrule
   \texttt{exact x.} &
   Résout le but courant si l'hypothèse \texttt{x} correspond \emph{exactement} au but. &
   \textbf{Règle "axiome"} \newline (Typage d'une variable) \newline
   \vspace{0.2cm} \newline
-  $\prftree[r]{Var}{\Gamma, x : A \vdash x : A}$ \\
+  $\prftree[r]{Var}{\Gamma, \term{x} : \type{A} \vdash \term{x} : \type{A}}$ \\
   \midrule
   \texttt{assumption.} &
   Résout le but courant s'il correspond \emph{exactement} à l'une des hypothèses (recherche automatique au lieu de nommer). &
   \textbf{Variante "axiome"} \newline (Idem \texttt{exact}) \newline
   \vspace{0.2cm} \newline
-  $\prftree[r]{Var}{\Gamma, H : A \vdash H : A}$ \\
+  $\prftree[r]{Var}{\Gamma, \term{H} : \type{A} \vdash \term{H} : \type{A}}$ \\
   \midrule
   \texttt{apply f.} &
   Si le but est $B$ et qu'on a $f : A \to B$, change le but en $A$ (raisonnement arrière). &
   \textbf{$\to$-Élimination} \newline (Modus Ponens / Application) \newline
   \vspace{0.2cm} \newline
-  \resizebox{\linewidth}{!}{$\prftree[r]{App}{\prftree[r]{Var}{\Gamma, f : A \to B \vdash f : A \to B}}{\prfassumption{\Gamma, f : A \to B \vdash M : A}}{\Gamma, f : A \to B \vdash f\ M : B}$} \\
+  \resizebox{\linewidth}{!}{$\prftree[r]{App}{\prftree[r]{Var}{\Gamma, \term{f} : \type{A \to B} \vdash \term{f} : \type{A \to B}}}{\prfassumption{\Gamma, \term{f} : \type{A \to B} \vdash \term{{?}M} : \type{A}}}{\Gamma, \term{f} : \type{A \to B} \vdash \term{f\ {?}M} : \type{B}}$} \\
   \midrule
   \texttt{split.} &
   Pour un but $A \land B$, crée deux sous-buts $A$ et $B$. &
   \textbf{$\land$-Introduction} \newline (Formation de paire) \newline
   \vspace{0.2cm} \newline
-  $\prftree[r]{${\land}I$}{\Gamma \vdash M : A}{\Gamma \vdash N : B}{\Gamma \vdash (M, N) : A \land B}$ \\
-  \midrule
-  \texttt{destruct H as [x y].} &
-  Pour $H : A \land B$, extrait les preuves $x:A$ et $y:B$. &
-  \textbf{$\land$-Éliminations} \newline (Projections $\pi_1, \pi_2$) \newline
-  \vspace{0.2cm} \newline
-  \resizebox{\linewidth}{!}{$\prftree[r]{${\land}E_1$}{\Gamma \vdash M : A \land B}{\Gamma \vdash \pi_1 M : A} \quad \prftree[r]{${\land}E_2$}{\Gamma \vdash M : A \land B}{\Gamma \vdash \pi_2 M : B}$} \\
+  $\prftree[r]{${\land}I$}{\Gamma \vdash \term{{?}M} : \type{A}}{\Gamma \vdash \term{{?}N} : \type{B}}{\Gamma \vdash \term{({?}M, {?}N)} : \type{A \land B}}$ \\
+
   \midrule
   \texttt{left.} / \texttt{right.} &
   Pour un but $A \lor B$, choisit de prouver $A$ (gauche) ou $B$ (droite). &
   \textbf{$\lor$-Introductions} \newline (Injections $\iota_1, \iota_2$) \newline
   \vspace{0.2cm} \newline
-  \resizebox{\linewidth}{!}{$\prftree[r]{${\lor}I_1$}{\Gamma \vdash M : A}{\Gamma \vdash \iota_1 M : A \lor B} \quad \prftree[r]{${\lor}I_2$}{\Gamma \vdash M : B}{\Gamma \vdash \iota_2 M : A \lor B}$} \\
+  \resizebox{\linewidth}{!}{$\prftree[r]{${\lor}I_1$}{\Gamma \vdash \term{{?}M} : \type{A}}{\Gamma \vdash \term{\iota_1 {?}M} : \type{A \lor B}} \quad \prftree[r]{${\lor}I_2$}{\Gamma \vdash \term{{?}M} : \type{B}}{\Gamma \vdash \term{\iota_2 {?}M} : \type{A \lor B}}$} \\
+
+  \midrule
+  \texttt{exfalso.} &
+  Change n'importe quel but en $\bot$ (\texttt{False}). &
+  \textbf{Principe d'Explosion} \newline (\textit{Ex Falso Quodlibet}) \newline
+  \vspace{0.2cm} \newline
+  $\prftree[r]{$\bot E$}{\Gamma \vdash \term{{?}M} : \type{\bot}}{\Gamma \vdash \term{\texttt{abort } {?}M} : \type{A}}$ \\
+  \midrule
+  \texttt{admit.} &
+  Accepte le but courant sans preuve. \newline \textit{N.B. : La validation finale d'un lemme contenant \texttt{admit} requiert \texttt{Admitted} au lieu de \texttt{Qed}.} &
+  \begin{center}
+    ---
+  \end{center}\\
+  \midrule
+  \texttt{exists t.} &
+  Pour un but $\exists x, P(x)$, fournit le témoin $t$. Le but devient alors $P(t)$. &
+  \textbf{$\exists$-Introduction} \newline (Paire d'un témoin et d'une preuve) \newline
+  \vspace{0.2cm} \newline
+  $\prftree[r]{$\exists I$}{\Gamma \vdash \term{{?}M} : \type{P[t/x]}}{\Gamma \vdash \term{(t, {?}M)} : \type{\exists x. P(x)}}$ \\
+  \midrule
+  \begin{tabular}{@{}l@{}}
+    \texttt{rewrite H.} \\
+    \textit{ou} \\
+    \texttt{rewrite <- H.}
+  \end{tabular} &
+  Remplace le membre gauche de l'égalité \texttt{H} par le membre droit dans le but (ou l'inverse avec \texttt{<-}). &
+  \textbf{Substitution de Leibniz} \newline (Principe d'identité) \newline
+  \vspace{0.2cm} \newline
+  \resizebox{\linewidth}{!}{
+  $\prftree[r]{Subst}{\prftree[r]{Var}{}{\Gamma, \type{x = y} \vdash \type{x = y}}}{\prfassumption{\Gamma, \type{x = y} \vdash \type{P(x)}}}{\Gamma, \type{x = y} \vdash \type{P(y)}}$} \\
+  \midrule
+  \texttt{reflexivity.} &
+  Résout un but de la forme $t = u$ lorsque $t$ est \emph{définitionnellement égal} à $u$ (i.e. $t =_{\beta\eta} u$ modulo \emph{unfolding} de définitions faites avec la commande \texttt{Definition}). &
+  \textbf{Réflexivité} \newline \vspace{0.2cm} \newline
+  $\prftree[r]{Refl}{\Gamma \vdash \type{\term{t} = \term{t}}}$ \\
+  \midrule
+  \multicolumn{3}{c}{\textit{--- Tactiques \og Forward \fg\ (Raisonnement en avant) ---}} \\
+  \midrule
+  \texttt{destruct H as [x y].} &
+  Pour $H : A \land B$, extrait les preuves $x:A$ et $y:B$. &
+  \textbf{$\land$-Éliminations} \newline (Projections $\pi_1, \pi_2$) \newline
+  \vspace{0.2cm} \newline
+  \resizebox{\linewidth}{!}{$\prftree[r]{${\land}E_1$}{\Gamma \vdash \term{M} : \type{A \land B}}{\Gamma \vdash \term{\pi_1 M} : \type{A}} \quad \prftree[r]{${\land}E_2$}{\Gamma \vdash \term{M} : \type{A \land B}}{\Gamma \vdash \term{\pi_2 M} : \type{B}}$} \\
   \midrule
   \texttt{destruct H as [x | y].} &
   Pour $H : A \lor B$, génère deux univers : l'un avec $x:A$, l'autre avec $y:B$. &
   \textbf{$\lor$-Élimination} \newline (Raisonnement par cas : \newline \texttt{match ... with}) \newline
   \vspace{0.2cm} \newline
-  \resizebox{\linewidth}{!}{$\prftree[r]{${\lor}E$}{\Gamma \vdash M : A \lor B}{\Gamma, x : A \vdash N : C}{\Gamma, y : B \vdash P : C}{\Gamma \vdash \text{match } M \text{ with } \dots : C}$} \\
+  \resizebox{\linewidth}{!}{$\prftree[r]{${\lor}E$}{\Gamma \vdash \term{M} : \type{A \lor B}}{\Gamma, \term{x} : \type{A} \vdash \term{N} : \type{C}}{\Gamma, \term{y} : \type{B} \vdash \term{P} : \type{C}}{\Gamma \vdash \term{\text{match } M \text{ with } \dots} : \type{C}}$} \\
   \midrule
   \texttt{destruct H.} &
   Variante des précédents : Rocq choisit les noms d'hypothèses automatiquement. &
@@ -113,17 +158,25 @@ Dans le mode \textbf{Preuve Interactive}, les tactiques construisent le $\lambda
     ---
   \end{center} \\
   \midrule
-  \texttt{exfalso.} &
-  Change n'importe quel but en $\bot$ (\texttt{False}). &
-  \textbf{Principe d'Explosion} \newline (\textit{Ex Falso Quodlibet}) \newline
-  \vspace{0.2cm} \newline
-  $\prftree[r]{$\bot$E}{\Gamma \vdash M : \bot}{\Gamma \vdash \texttt{abort } M : A}$ \\
-  \midrule
-  \texttt{admit.} &
-  Accepte le but courant sans preuve. \newline \textit{N.B. : La validation finale d'un lemme contenant \texttt{admit} requiert \texttt{Admitted} au lieu de \texttt{Qed}.} &
+  \texttt{apply f in H.} &
+  Si on a $H : A$ et $f : A \to B$, modifie l'hypothèse $H$ pour qu'elle devienne de type $B$. &
+  \textbf{$\to$-Élimination} \newline (Modus Ponens)
   \begin{center}
     ---
-  \end{center}\\
+  \end{center} \\
+  \midrule
+  \texttt{pose proof N as x.} &
+  Prend un terme $N$ comme justification pour ajouter une nouvelle hypothèse $x : A$, étant donné que $\Gamma \vdash N : A$ avec $\Gamma$ le contexte du but courant. &
+  \textbf{Règle de Coupure (Cut)}
+  \vspace{0.2cm} \newline
+  $\prftree[r]{Cut}{\prfsummary{\Gamma \vdash \term{N} : \type{A}}}{\Gamma, \term{x} : \type{A} \vdash \term{{?}M} : \type{B}}{\Gamma \vdash \term{\mathtt{let}\ x \ \mathtt{:=}\ N\ \mathtt{in}\ {?}M} : \type{B}}$
+  \\
+  \midrule
+  \texttt{assert (A) as x. \{ \dots\ \}} &
+  Ouvre un sous-but temporaire pour prouver d'abord $A$. Une fois prouvé, on obtient une nouvelle hypothèse $x : A$. &
+  \textbf{Règle de Coupure (Cut)} \newline (Lemme local / Lemmatisation) \newline
+  \vspace{0.2cm} \newline
+  $\prftree[r]{Cut}{\prfassumption{\Gamma \vdash \term{{?}N} : \type{A}}}{\Gamma, \term{x} : \type{A} \vdash \term{{?}M} : \type{B}}{\Gamma \vdash \term{\mathtt{let}\ x \ \mathtt{:=}\ {?}N\ \mathtt{in}\ {?}M} : \type{B}}$\\
   \bottomrule
 \end{xltabular}
 
