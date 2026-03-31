@@ -114,7 +114,7 @@ Maintenant que nous avons un \texttt{y} spécifique (mais quelconque), notre but
 
 \begin{remarque}{L'Unification Magique}{}
   Comment Rocq a-t-il su utiliser \texttt{H\_impl} ? Notre hypothèse \texttt{H\_impl} est une démonstration abstraite valable pour \textit{n'importe quel} individu $x$. Or notre but était de prouver \texttt{Q y}. Sous le capot, Rocq a "superposé" la conclusion de l'hypothèse (\texttt{Q x}) avec notre but actuel (\texttt{Q y}). Il a déduit de lui-même qu'il fallait instancier l'inconnue abstraite $x$ par l'individu concret $y$ pour que la superposition soit parfaite !
-  
+
   Ce processus purement mécanique de mise en correspondance de deux expressions (ou arbres syntaxiques) pour déterminer l'identité des variables s'appelle l'\textbf{unification}. Il libère l'utilisateur de l'obligation de préciser systématiquement l'individu pour lequel il applique un théorème universel.
 \end{remarque}
 
@@ -133,7 +133,7 @@ Une preuve d'existence est donc une PAIRE constituée de :
   \item Une preuve que ce témoin $x$ satisfait bien la propriété $P$.
 \end{enumerate}
 
-Pour construire une telle existence, on utilise la tactique \texttt{exists} en lui fournissant notre témoin.
+Pour construire une telle paire, on utilise la tactique \texttt{exists} en lui fournissant notre témoin.
 
 $$\prftree[r]{${\exists}I$}{\Gamma \vdash t : T \qquad \Gamma \vdash M : P(t)}{\Gamma \vdash (t, M) : \exists x : T, P(x)}$$
 
@@ -179,12 +179,12 @@ Qed.
 
 \section{L'Égalité Propositionnelle (=)}
 
-En mathématiques, l'égalité est la notion la plus fondamentale. Dans Rocq, \texttt{x = y} est une proposition. Dire que \texttt{x = y} est prouvable, c'est dire que $x$ et $y$ représentent formellement le même objet.
+En mathématiques, l'égalité est la notion la plus fondamentale. Dans Rocq, \texttt{x = y} est une proposition. Dire que \texttt{x = y} est prouvable, c'est dire que $x$ et $y$ dénotent formellement le même objet.
 
 L'outil principal pour manipuler l'égalité est la RÈGLE DE SUBSTITUTION : Si $x = y$, alors tout ce qui est vrai pour $x$ est vrai pour $y$. C'est la tactique \texttt{rewrite}.
 
 \begin{remarque}{Le Principe de Leibniz}{leibniz}
-  Ce comportement d'indiscernabilité des identiques trouve ses racines logiques dans le principe d'égalité de Leibniz (la substitution des identiques \textit{salva veritate}), dont nous reparlerons plus longuement la semaine prochaine au moment d'aborder la définition inductive formelle sous-jacente de l'égalité !
+  Ce comportement trouve ses racines philosophiques dans le \textbf{principe d'identité des indiscernables} de Leibniz (la substitution des identiques \textit{salva veritate}), dont nous reparlerons plus longuement la semaine prochaine au moment d'aborder la définition sous-jacente de l'égalité dans Rocq.
 \end{remarque}
 
 \begin{lstlisting}
@@ -211,7 +211,7 @@ Qed.
 Rocq distingue deux types d'égalités :
 \begin{enumerate}
   \item \textbf{L'égalité PROPOSITIONNELLE} ($x = y$) : c'est un énoncé logique qu'il faut prouver (par exemple avec \texttt{rewrite}, en appliquant des lemmes).
-  \item \textbf{L'égalité DÉFINITIONNELLE} ($\equiv$) : c'est le fait que deux expressions se ``calculent'' pour donner le même résultat de manière purement mécanique (via réduction $\beta$, expansion de définitions paramétrées en $\delta$).
+  \item \textbf{L'égalité DÉFINITIONNELLE} ($\equiv$) : c'est le fait que deux expressions se ``calculent'' pour donner le même résultat de manière purement mécanique (via $\beta\eta$-équivalence et déroulage de définitions).
 \end{enumerate}
 
 La magie, c'est que la tactique \texttt{reflexivity} réussit \textit{modulo} l'égalité définitionnelle ! Le système évalue discrètement les termes.
@@ -223,7 +223,7 @@ Lemma reflexivite_puissante : doubler 2 = 4.
 Proof.
 \end{lstlisting}
 
-Pour un mathématicien sur papier, il y a un petit travail de démonstration ici. Mais pour Rocq, \texttt{doubler 2} s'évalue mécaniquement en $2 + 2$, puis en $4$. Ensuite il constate que $4 \equiv 4$ est correct et conclut.
+Pour un logicien minutieux sur papier, il y a un petit travail de démonstration ici (par exemple avec les axiomes de Peano). Mais pour Rocq, \texttt{doubler 2} s'évalue mécaniquement en $2 + 2$, puis en $4$. Ensuite il constate que $4 = 4$ est correct et conclut.
 
 \begin{lstlisting}
   reflexivity.
@@ -231,7 +231,7 @@ Qed.
 \end{lstlisting}
 
 \begin{remarque}{Calcul Automatique}{}
-  C'est cette intégration du calcul AU CŒUR MÊME des règles de déduction qui fait la puissance inouïe des théories des types dépendantes par rapport à la philosophie logique classique sur papier ! L'ordinateur travaille littéralement pour nous.
+  C'est cette intégration du calcul AU CŒUR MÊME des règles de déduction qui rend la théorie des types intuitionniste particulièrement adéquate pour la formalisation assistée par ordinateur, contrairement à des fondations plus classiques tels que la théorie des ensembles ZFC.
 \end{remarque}
 
 \section{Exercices à faire}

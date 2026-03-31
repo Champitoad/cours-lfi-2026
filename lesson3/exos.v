@@ -58,7 +58,7 @@ Qed.
     1. Un "témoin" [x] de type [T] (la valeur concrète).
     2. Une preuve que ce témoin [x] satisfait bien la propriété [P].
     
-    Pour construire une telle existence, on utilise la tactique [exists] en
+    Pour construire une telle paire, on utilise la tactique [exists] en
     lui fournissant notre témoin. *)
 Lemma exists_intro : (forall x : T, P x) -> (exists y : T, P y \/ Q y).
 Proof.
@@ -101,17 +101,15 @@ Qed.
 
 (** * PARTIE 3 : L'ÉGALITÉ PROPOSITIONNELLE (Le signe =) *)
 
-(** En mathématiques, l'égalité est la notion la plus fondamentale. 
-    Dans Rocq, [x = y] est une proposition. Dire que [x = y] est prouvable,
-    c'est dire que [x] et [y] représentent formellement le même objet.
-    
-    L'outil principal pour manipuler l'égalité est la RÈGLE DE SUBSTITUTION :
-    Si [x = y], alors tout ce qui est vrai pour [x] est vrai pour [y].
-    C'est la tactique [rewrite].
-    
-    (Note philosophique : Ce comportement d'indiscernabilité des identiques
-     trouve ses racines logiques dans le principe d'égalité de Leibniz,
-     que nous approfondirons la semaine prochaine !) *)
+(** En mathématiques, l'égalité est la notion la plus fondamentale. Dans Rocq, [x = y] est une
+      proposition. Dire que [x = y] est prouvable, c'est dire que [x] et [y] dénotent
+      formellement le même objet.
+
+    L'outil principal pour manipuler l'égalité est la RÈGLE DE SUBSTITUTION : Si [x = y], alors tout
+    ce qui est vrai pour [x] est vrai pour [y]. C'est la tactique [rewrite].
+
+    (Note philosophique : Ce comportement trouve ses racines dans le principe d'identité des
+     indiscernables de Leibniz, que nous approfondirons la semaine prochaine !) *)
 Lemma egalite_sym : forall x y : T, x = y -> y = x.
 Proof.
   intros x y H_eq.
@@ -134,7 +132,7 @@ Qed.
        prouver (par exemple avec [rewrite], en appliquant des lemmes).
     2. L'égalité DÉFINITIONNELLE : c'est le fait que deux expressions se 
        "calculent" pour donner le même résultat de manière purement mécanique 
-       (via réduction $\beta$, expansion de définitions). 
+       (via $\beta\eta$-équivalence et déroulage de définitions). 
        
     La magie, c'est que la tactique [reflexivity] réussit modulo l'égalité
     définitionnelle ! Le système évalue discrètement les termes. *)
@@ -143,15 +141,16 @@ Definition doubler (n : nat) : nat := n + n.
 
 Lemma reflexivite_puissante : doubler 2 = 4.
 Proof.
-  (** Pour un mathématicien, il y a un travail de démonstration ici.
-      Mais pour Rocq, [doubler 2] s'évalue mécaniquement en [2 + 2],
-      puis en [4]. [4] et [4] sont identiques : c'est l'égalité définitionnelle. *)
+  (** Pour un logicien minutieux sur papier, il y a un petit travail de démonstration ici (par
+        exemple avec les axiomes de Peano). Mais pour Rocq, [doubler 2] s'évalue mécaniquement
+        en [2 + 2], puis en [4]. Ensuite il constate que [4 = 4] est correct et conclut. *)
   reflexivity.
 Qed.
 
 (** C'est cette intégration du calcul AU CŒUR MÊME des règles de déduction
-    qui fait la puissance inouïe des théories des types dépendantes par 
-    rapport à la philosophie classique ! L'ordinateur travaille pour nous. *)
+    qui rend la théorie des types intuitionniste particulièrement adéquate 
+    pour la formalisation assistée par ordinateur, contrairement à des fondations 
+    plus classiques tels que la théorie des ensembles ZFC. *)
 
 (** * PARTIE 5 : EXERCICES À FAIRE *)
 
