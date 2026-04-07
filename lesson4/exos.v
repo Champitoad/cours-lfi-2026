@@ -78,7 +78,7 @@ Variable T : Type.
                 P x -> forall y : A, x = y -> P y]
 
     Stratégie : pour prouver [Q y] sachant [H : x = y], choisir [P := fun z => Q z]
-    de sorte que [P x = Q x], puis écrire [eq_ind x P (preuve de Q x) y H].
+    de sorte que [P x] se réduit en [Q x], puis écrire [eq_ind x P (preuve de Q x) y H].
 
     EXEMPLE (vu dans cours.v) — symétrie :
     Choisir [P := fun z => z = x], de sorte que [P x] se réduit en [x = x],

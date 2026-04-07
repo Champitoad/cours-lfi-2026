@@ -16,6 +16,21 @@ Print and.
       Inductive and (A B : Prop) : Prop :=
         conj : A -> B -> A /\ B          <- règle /\I *)
 
+Check or_ind.
+
+Definition or_prag (A B : Prop) : Prop := forall (P : Prop), (A -> P) -> (B -> P) -> A \/ B -> P.
+
+
+Lemma or_intro1 (A B : Prop) : A -> or_prag A B.
+Proof.
+  intros x.
+  unfold or_prag.
+  intros P D1 D2 D.
+  destruct D as [H1 | H2].
+  - apply D1. exact H1.
+  - apply D2. exact H2.
+Qed.
+
 Print or.
 (** Résultat :
       Inductive or (A B : Prop) : Prop :=
@@ -23,6 +38,7 @@ Print or.
       | or_intror : B -> A \/ B          <- règle \/I₂ *)
 
 Print eq.
+Check eq_ind.
 (** Résultat :
       Inductive eq (A : Type) (x : A) : A -> Prop :=
         eq_refl : x = x                  <- l'unique règle d'intro de = *)
