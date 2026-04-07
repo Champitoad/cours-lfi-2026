@@ -1,0 +1,236 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{xcolor}
+\usepackage{listingsutf8}
+\usepackage[most]{tcolorbox}
+\usepackage{prftree}
+\usepackage{hyperref}
+\usepackage{newunicodechar}
+
+\newunicodechar{ι}{\ensuremath{\iota}}
+\newunicodechar{₁}{\ensuremath{_1}}
+\newunicodechar{₂}{\ensuremath{_2}}
+
+\newtcbtheorem{remarque}{Remarque}{
+  colback=blue!5!white,
+  colframe=blue!75!black,
+  fonttitle=\bfseries,
+  breakable,
+  enhanced
+}{rem}
+
+\newtcbtheorem{exercice}{Exercice}{
+  colback=green!5!white,
+  colframe=green!40!black,
+  fonttitle=\bfseries,
+  breakable,
+  enhanced
+}{exo}
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\lstset{
+  language=ML,
+  inputencoding=utf8,
+  backgroundcolor=\color{backcolour},
+  commentstyle=\color{codegreen},
+  keywordstyle=\color{blue}\bfseries,
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{lightgray},
+  showstringspaces=false,
+  extendedchars=true,
+  literate={ι}{{$\iota$}}1 {₁}{{$_1$}}1 {₂}{{$_2$}}1 {é}{{\'e}}1 {è}{{\`e}}1 {à}{{\`a}}1 {ù}{{\`u}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+}
+
+\makeatletter
+\newcommand{\subtitle}[1]{%
+  \gdef\@subtitle{#1}%
+}
+\let\oldmaketitle\maketitle
+\renewcommand{\maketitle}{%
+  \let\oldtitle\@title
+  \renewcommand{\@title}{\oldtitle\\[1em]\Large\normalfont\@subtitle}%
+  \oldmaketitle
+}
+\makeatother
+
+\title{LEÇON 4 : Proof-theoretic semantics, vérificationnisme et pragmatisme}
+\subtitle{Éliminateurs à la main, propriétés de l'égalité, et \texttt{Compute}}
+\date{07/04/2026}
+\author{Pablo Donato}
+
+\begin{document}
+
+\maketitle
+
+Nous avons vu aujourd'hui que les connecteurs logiques sont définis dans Rocq comme des \textbf{types inductifs}, dont les constructeurs sont exactement les règles d'introduction de la déduction naturelle. La tactique \texttt{destruct} génère automatiquement un \texttt{match~\dots~with~\dots~end} pour les éliminer. Dans ces exercices, vous écrirez ce \texttt{match} à la main pour voir ce qui se passe sous le capot. Vous décortiquerez ensuite les propriétés fondamentales de l'égalité, dont le comportement est lui aussi justifié par la sémantique vérificationniste.
+
+\begin{lstlisting}
+Section Lesson4.
+Variables A B C : Prop.
+\end{lstlisting}
+
+\section{Éliminateurs à la main (\texttt{match~\dots~with})}
+
+Rappel : le type \texttt{A /\textbackslash{} B} a un seul constructeur \texttt{conj~:~A~->~B~->~A~/\textbackslash{}~B}. Pour utiliser une hypothèse \texttt{H~:~A~/\textbackslash{}~B}, on ``pattern-matche'' ou ``filtre par motif'' :
+
+\begin{lstlisting}
+match H with
+| conj a b => (* a : A, b : B disponibles ici *)
+end
+\end{lstlisting}
+
+Le type \texttt{A \textbackslash{}/ B} a deux constructeurs : \texttt{or\_introl~:~A~->~A~\textbackslash{}/~B} et \texttt{or\_intror~:~B~->~A~\textbackslash{}/~B}. Le filtrage génère deux branches :
+
+\begin{lstlisting}
+match H with
+| or_introl a => ...
+| or_intror b => ...
+end
+\end{lstlisting}
+
+Voici un exemple complet pour illustrer la démarche : on extrait les composantes avec \texttt{match}, puis on reconstruit avec \texttt{conj}.
+
+\begin{lstlisting}
+(* Exemple : symetrie de la conjonction *)
+Lemma and_sym : A /\ B -> B /\ A.
+Proof.
+  intro H.
+  exact (match H with
+         | conj a b => conj b a
+         end).
+Qed.
+\end{lstlisting}
+
+\begin{exercice}{Extraction de la deuxième composante}{}
+  Sans utiliser \texttt{destruct}, prouvez que $A \land B \Rightarrow B$ en écrivant un \texttt{match} explicite.
+
+\begin{lstlisting}
+Lemma and_elim_2 : A /\ B -> B.
+Proof.
+  (* A COMPLETER *)
+Admitted.
+\end{lstlisting}
+\end{exercice}
+
+\begin{exercice}{Symétrie de la disjonction}{}
+  Sans utiliser \texttt{destruct}, prouvez $A \lor B \Rightarrow B \lor A$.
+  Votre \texttt{match} doit avoir deux branches — l'une utilisant \texttt{or\_intror}, l'autre \texttt{or\_introl}.
+
+\begin{lstlisting}
+Lemma or_sym : A \/ B -> B \/ A.
+Proof.
+  intro H.
+  (* A COMPLETER *)
+Admitted.
+\end{lstlisting}
+\end{exercice}
+
+\begin{exercice}{De la conjonction vers la disjonction}{}
+  Utilisez \texttt{match} pour extraire $A$ de l'hypothèse $A \land B$, puis injectez-le dans $A \lor C$ avec \texttt{or\_introl}.
+
+\begin{lstlisting}
+Lemma and_to_or : A /\ B -> A \/ C.
+Proof.
+  (* A COMPLETER *)
+Admitted.
+\end{lstlisting}
+\end{exercice}
+
+\begin{remarque}{Correspondance avec \texttt{destruct}}{}
+  À tout moment, vous pouvez utiliser \texttt{Print} pour voir le terme de preuve réel que Rocq a construit :
+\begin{lstlisting}
+Print and_sym.
+\end{lstlisting}
+  Vous constaterez que \texttt{destruct H as [a b]} génère exactement le même \texttt{match} que vous venez d'écrire à la main. La tactique n'est qu'un raccourci syntaxique.
+\end{remarque}
+
+\section{Propriétés de l'égalité — $\lambda$-termes à la main}
+
+L'éliminateur de \texttt{eq} dérivé automatiquement par Rocq est \texttt{eq\_ind} :
+\begin{lstlisting}
+eq_ind : forall (A : Type) (x : A) (P : A -> Prop),
+         P x -> forall y : A, x = y -> P y
+\end{lstlisting}
+C'est le \textbf{principe de Leibniz} : si $P(x)$ est vrai et $x = y$, alors $P(y)$ est vrai.
+La tactique \texttt{rewrite~H} l'applique silencieusement.
+
+\textbf{Stratégie :} pour prouver $Q(y)$ sachant \texttt{H~:~x~=~y}, choisir $P := \lambda z.\; Q(z)$ de sorte que $P(x) = Q(x)$, puis écrire \texttt{eq\_ind~x~P~(preuve de Q x)~y~H}.
+
+L'exemple de la symétrie (vu dans \texttt{cours.v}) illustre la démarche :
+\begin{lstlisting}
+(* Exemple : symetrie.  P := fun z => z = x, donc P x = (x = x). *)
+Definition eq_sym_terme : forall (x y : T), x = y -> y = x :=
+  fun x y H => eq_ind x (fun z => z = x) eq_refl y H.
+\end{lstlisting}
+
+\begin{lstlisting}
+Variable T : Type.
+\end{lstlisting}
+
+\begin{exercice}{Transitivité — $\lambda$-terme pur}{}
+  Pour prouver $x = z$ sachant $H_1 : x = y$ et $H_2 : y = z$, choisir $P := \lambda w.\; x = w$.
+  Alors $P(y) = (x = y)$, prouvé par $H_1$.
+  Appliquer \texttt{eq\_ind} à $H_2 : y = z$ pour obtenir $P(z) = (x = z)$.
+
+\begin{lstlisting}
+Definition eq_trans : forall (x y z : T), x = y -> y = z -> x = z :=
+  todo. (* A COMPLETER *)
+\end{lstlisting}
+\end{exercice}
+
+\begin{exercice}{Congruence — $\lambda$-terme pur}{}
+  Si $x = y$, alors $f(x) = f(y)$ pour toute $f : T \to T$.
+  Choisir $P := \lambda z.\; f(x) = f(z)$, de sorte que $P(x) = (f(x) = f(x))$,
+  prouvé par \texttt{eq\_refl}.
+
+\begin{lstlisting}
+Definition f_equal : forall (f : T -> T) (x y : T), x = y -> f x = f y :=
+  todo. (* A COMPLETER *)
+\end{lstlisting}
+\end{exercice}
+
+\section{Expérimenter avec \texttt{Compute}}
+
+La commande \texttt{Compute} évalue une expression jusqu'à sa forme normale. Elle illustre l'\textbf{élimination des détours} (\textit{cut elimination}) : un constructeur immédiatement suivi de son éliminateur se réduit en une étape.
+
+\begin{lstlisting}
+Variable (a : A) (b : B) (f : A -> C) (g : B -> C).
+\end{lstlisting}
+
+Exécutez les commandes suivantes et observez les résultats :
+
+\begin{lstlisting}
+(* Detour fonctionnel (beta) *)
+Compute (fun x : A => x) a.
+
+(* Detour conjonctif *)
+Compute (match conj a b with conj x y => x end).
+
+(* Detour disjonctif *)
+Compute (match or_introl a : A \/ B with
+         | or_introl x => f x
+         | or_intror y => g y
+         end).
+\end{lstlisting}
+
+\begin{exercice}{Observer la réduction}{}
+  \begin{enumerate}
+    \item Que retourne chacune des trois commandes \texttt{Compute} ci-dessus ?
+    \item Que se passe-t-il si vous remplacez \texttt{or\_introl~a} par \texttt{or\_intror~b} dans le troisième exemple ?
+    \item \textit{(Bonus)} Construisez un exemple de ``double détour'' — deux introductions suivies de deux éliminations — et vérifiez avec \texttt{Compute} que la normalisation donne directement la valeur finale.
+  \end{enumerate}
+\end{exercice}
+
+\begin{lstlisting}
+End Lesson4.
+\end{lstlisting}
+
+\end{document}

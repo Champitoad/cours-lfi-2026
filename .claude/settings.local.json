@@ -4,7 +4,18 @@
       "Bash(pdflatex -interaction=nonstopmode main.tex)",
       "Bash(biber --version)",
       "Bash(biber main:*)",
-      "Bash(coqc cours.v)"
+      "Bash(coqc cours.v)",
+      "Bash(coqc exos.v)",
+      "Bash(coqc exos_bonus.v)",
+      "Bash(coqc lesson4/exos_bonus.v)",
+      "Bash(coqc lesson4/exos_bonus_correction.v)",
+      "Bash(coqc lesson4/exos.v)",
+      "Bash(coqc lesson4/cours.v)",
+      "Bash(pdflatex -interaction=nonstopmode exos.tex)",
+      "Bash(pdflatex -interaction=nonstopmode /Users/pablo/Documents/work/cours/LFI-2026/lesson4/exos.tex)",
+      "Bash(coqc /Users/pablo/Documents/work/cours/LFI-2026/lesson4/exos_bonus.v)",
+      "Bash(coqc /Users/pablo/Documents/work/cours/LFI-2026/lesson4/exos_bonus_correction.v)",
+      "Bash(echo \"EXIT:$?\")"
     ]
   }
 }

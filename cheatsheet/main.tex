@@ -26,7 +26,7 @@
 \maketitle
 \vspace{-1.5cm}
 
-\section*{1. Dictionnaire : $\lambda$-calcul simplement typé $\leftrightarrow$ Rocq}
+\section{Dictionnaire : $\lambda$-calcul simplement typé $\leftrightarrow$ Rocq}
 
 \renewcommand{\arraystretch}{1.5}
 \begin{tabularx}{\textwidth}{@{} l X c @{}}
@@ -42,21 +42,25 @@
   Parenthésage & $(f \ (g \ x))$ & \texttt{f (g x)} \\
   \midrule
   Conjonction (ET) & $A \land B$ & \texttt{A /\textbackslash\ B} \\
-  Paire & $(x, y)$ & \texttt{(x, y)} \\
+  Constructeur de $\land$ & $(a, b)$ & \texttt{conj a b} \\
   Disjonction (OU) & $A \lor B$ & \texttt{A \textbackslash/ B} \\
-  Injections & $\iota_1, \iota_2$ & \texttt{ι₁, ι₂} \\
+  Constructeurs de $\lor$ & $\iota_1\, a,\ \iota_2\, b$ & \texttt{or\_introl a}, \texttt{or\_intror b} \\
   Négation (NON) & $\neg A$ & \texttt{\textasciitilde A} ou \texttt{not A} \\
   Absurdité & $\bot$ & \texttt{False} \\
+  Vérité & $\top$ & \texttt{True} \\
+  Constructeur de $\top$ & $\star$ & \texttt{I} \\
   \midrule
   Quantificateur Universel & $\forall x. M$ & \texttt{forall x, M} \\
   Quantificateur Existentiel & $\exists x. M$ & \texttt{exists x, M} \\
+  Constructeur de $\exists$ & $(t, p)$ avec $p : P\,t$ & \texttt{ex\_intro P t p} \\
   Égalité Propositionnelle & $x = y$ & \texttt{x = y} \\
+  Constructeur de $=$ & $\mathsf{refl}_x$ & \texttt{eq\_refl x} \\
   \bottomrule
 \end{tabularx}
 
 \vspace{1cm}
 
-\section*{2. Tactiques et Déduction Naturelle}
+\section{Tactiques et Déduction Naturelle}
 
 Dans le mode \textbf{Preuve Interactive}, les tactiques construisent le $\lambda$-terme à l'envers (en remontant de la conclusion vers les prémisses de l'arbre de dérivation en déduction naturelle). Dans la suite, on utilise la notation ${?}M$ pour indiquer une \emph{variable existentielle}, i.e. un terme qu'il reste à fournir par l'utilisateur, correspondant à une prémisse ouverte de la dérivation en cours de construction.
 
@@ -180,7 +184,41 @@ Dans le mode \textbf{Preuve Interactive}, les tactiques construisent le $\lambda
   \bottomrule
 \end{xltabular}
 
-\section*{3. Logique Classique vs Intuitionniste}
+\section{Termes de preuve et commandes d'inspection}
+
+\begin{tabularx}{\textwidth}{@{} l X @{}}
+  \toprule
+  \textbf{Syntaxe Rocq} & \textbf{Effet / Description} \\
+  \midrule
+  \texttt{match H with} \newline \texttt{| conj a b => \dots} \newline \texttt{end} &
+  Éliminateur à la main de $H : A \land B$ : extrait les composantes $a:A$ et $b:B$.
+  C'est le terme que \texttt{destruct H as [a b]} génère automatiquement. \\
+  \midrule
+  \texttt{match H with} \newline \texttt{| or\_introl a => \dots} \newline \texttt{| or\_intror b => \dots} \newline \texttt{end} &
+  Éliminateur à la main de $H : A \lor B$ : analyse par cas.
+  C'est le terme que \texttt{destruct H as [a | b]} génère automatiquement. \\
+  \midrule
+  \texttt{eq\_ind} & L'éliminateur de \texttt{eq} dérivé automatiquement par Rocq et invoqué par la
+  tactique \texttt{rewrite}. Son type formalise le \textbf{principe de Leibniz} : toute propriété de
+  $x$ est propriété de $y$ dès que $x = y$.\\
+  \midrule
+  \texttt{Compute e.} &
+  Évalue l'expression \texttt{e} jusqu'à sa forme normale ($\beta$-réduit, déplie les définitions).
+  Illustre l'élimination des détours intro/élim (cut elimination).\\
+  % Fonctionne sur n'importe quel terme Rocq, y compris les preuves de \texttt{Prop}.\\
+  \midrule
+  \texttt{Print nom.} &
+  Affiche la définition complète de \texttt{nom} (type inductif, lemme\ldots).
+  Utile pour voir le terme de preuve généré par des tactiques. \\
+  \midrule
+  \texttt{Check terme.} &
+  Affiche le type de \texttt{terme} sans l'évaluer. \\
+  \bottomrule
+\end{tabularx}
+
+\vspace{0.5cm}
+
+\section{Logique Classique vs Intuitionniste}
 
 Par défaut, Rocq utilise une logique \textbf{intuitionniste} (constructiviste) : on ne peut prouver $A \lor \neg A$ que si l'on possède un algorithme pour décider lequel est vrai.
 
