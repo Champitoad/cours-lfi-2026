@@ -1,0 +1,505 @@
+\documentclass[aspectratio=169]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{pgfpages}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, decorations.pathreplacing, calc}
+\usepackage[backend=biber, style=alphabetic, url=true]{biblatex}
+\addbibresource{../../biblio.bib}
+
+\graphicspath{{images/}}
+\usetheme{Boadilla}
+% \setbeameroption{show notes on second screen=right}
+
+\title{Leçon 5 : Induction et Programmation Fonctionnelle}
+\subtitle{Types inductifs pour les données, fonctions récursives, principes d'induction}
+\author{Pablo Donato}
+\institute{Logique et Fondements de l'Informatique}
+\date{Année 2026}
+
+\begin{document}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 1 — TITRE
+% ─────────────────────────────────────────────────────────────
+\begin{frame}
+  \titlepage
+  \note{
+    Rappel de la semaine dernière : on a vu que les connecteurs logiques (\texttt{and}, \texttt{or},
+    \texttt{eq}) sont définis dans Rocq comme des types inductifs. Leurs constructeurs incarnent
+    les règles d'introduction ; Rocq dérive automatiquement les éliminateurs.
+
+    Aujourd'hui on applique \emph{exactement le même mécanisme} — mais aux \textbf{données}
+    plutôt qu'aux propositions. Les entiers naturels, les listes. Et on verra que programmer
+    une fonction récursive et prouver quelque chose par induction, c'est la même chose.
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 2 — RAPPEL L4 : PONT VERS LES DONNÉES
+% ─────────────────────────────────────────────────────────────
+\begin{frame}[fragile]{Rappel : \texttt{Inductive} pour les propositions}
+  La semaine dernière, on a levé le voile sur les connecteurs logiques :
+  \medskip
+  \begin{columns}
+    \begin{column}{0.48\textwidth}
+\begin{verbatim}
+Inductive and (A B : Prop)
+    : Prop :=
+  | conj : A -> B -> A /\ B.
+\end{verbatim}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+\begin{verbatim}
+Inductive or (A B : Prop)
+    : Prop :=
+  | or_introl : A -> A \/ B
+  | or_intror : B -> A \/ B.
+\end{verbatim}
+    \end{column}
+  \end{columns}
+  \medskip
+  \begin{itemize}
+    \item Constructeurs = règles d'introduction en déduction naturelle
+    \item Éliminateurs (\texttt{and\_ind}, \texttt{or\_ind}) dérivés automatiquement
+    \item \texttt{destruct} = application de l'éliminateur
+  \end{itemize}
+  \pause
+  \begin{alertblock}{Question}
+    Et si on appliquait le même mécanisme à des \textbf{données} plutôt qu'à des \emph{propositions} ?
+  \end{alertblock}
+  \note{
+    Très court. L'objectif est d'établir explicitement le pont : même mot-clé \texttt{Inductive},
+    même logique. Ce qui change, c'est l'univers : \texttt{Prop} pour les preuves,
+    \texttt{Set}/\texttt{Type} pour les données.
+    Passer vite — les étudiants connaissent déjà. La vraie question est dans l'alertblock.
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 3 — LES ENTIERS NATURELS À LA PEANO
+% ─────────────────────────────────────────────────────────────
+\begin{frame}[fragile]{Les entiers naturels à la Peano}
+  \begin{columns}
+    \begin{column}{0.45\textwidth}
+      \textbf{Informellement :}
+      \begin{itemize}
+        \item $0$ est un entier naturel
+        \item Si $n$ est un entier naturel, \\ son successeur $S(n)$ aussi
+        \item Ce sont les \emph{seuls} entiers naturels
+      \end{itemize}
+      \medskip
+      Univers : \texttt{Set} (données calculables), pas \texttt{Prop} (preuves).
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \textbf{En Rocq :}
+\begin{verbatim}
+Inductive nat : Set :=
+  | O : nat
+  | S : nat -> nat.
+\end{verbatim}
+      \medskip
+      \begin{center}
+        \small
+        \begin{tabular}{cc}
+          \hline
+          \textbf{Notation} & \textbf{Interne} \\
+          \hline
+          \texttt{0} & \texttt{O} \\
+          \texttt{1} & \texttt{S O} \\
+          \texttt{2} & \texttt{S (S O)} \\
+          \texttt{n} & $n$ applications de \texttt{S} \\
+          \hline
+        \end{tabular}
+      \end{center}
+    \end{column}
+  \end{columns}
+  \pause
+  \begin{block}{Comparez avec \texttt{or}}
+    \texttt{or} a deux constructeurs (\texttt{or\_introl}, \texttt{or\_intror}).
+    \texttt{nat} a deux constructeurs (\texttt{O}, \texttt{S}).
+    Le mécanisme est identique.
+  \end{block}
+  \note{
+    Insister sur la symétrie avec \texttt{or} : deux constructeurs dans les deux cas.
+    \texttt{O} est le constructeur de base (sans argument), comme \texttt{or\_introl} prendrait une preuve de A.
+    \texttt{S} est le constructeur récursif — il prend un \texttt{nat} et produit un \texttt{nat}.
+    Faire taper \texttt{Print nat.} en live juxste avant pour montrer que Rocq connaît déjà ça.
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 4 — DÉFINITION PAR FILTRAGE : PRED
+% ─────────────────────────────────────────────────────────────
+\begin{frame}[fragile]{Calculer avec \texttt{nat} : le filtrage de motifs}
+  Pour utiliser une valeur de type \texttt{nat}, on filtre par motif sur ses constructeurs,
+  exactement comme on filtrait une preuve de \texttt{A \textbackslash/ B} en Leçon 4.
+
+\begin{verbatim}
+Definition pred (n : nat) : nat :=
+  match n with
+  | O   => O        (* prédécesseur de 0 : convention *)
+  | S m => m        (* prédécesseur de S m : c'est m  *)
+  end.
+\end{verbatim}
+  \pause
+  \medskip
+  \begin{columns}
+    \begin{column}{0.55\textwidth}
+      \begin{itemize}
+        \item Deux branches = deux constructeurs de \texttt{nat}
+        \item Dans la branche \texttt{S m}, la variable \texttt{m : nat}
+          est liée (comme \texttt{a : A} dans \texttt{or\_introl a})
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.4\textwidth}
+\begin{verbatim}
+Compute pred 3.  (* = 2 *)
+Compute pred 0.  (* = 0 *)
+\end{verbatim}
+    \end{column}
+  \end{columns}
+  \note{
+    Faire le parallèle explicitement :
+    « En L4 on écrivait \texttt{match H with | or\_introl a => ... | or\_intror b => ...}.
+    Ici c'est pareil : \texttt{match n with | O => ... | S m => ...}.
+    La structure est identique. »
+    Puis passer en jsCoq et taper pred en live.
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 5 — FIXPOINT : RÉCURSION STRUCTURELLE
+% ─────────────────────────────────────────────────────────────
+\begin{frame}[fragile]{\texttt{Fixpoint} : fonctions récursives}
+  Certaines fonctions ont besoin de s'appeler elles-mêmes. Exemple : l'addition.
+
+  \begin{columns}
+    \begin{column}{0.52\textwidth}
+\begin{verbatim}
+Fixpoint add (n m : nat) : nat :=
+  match n with
+  | O   => m
+  | S p => S (add p m)
+  end.
+\end{verbatim}
+      \pause
+      % \medskip
+      \begin{alertblock}{Récursion structurelle}
+        À chaque appel récursif, \texttt{p} est
+        structurellement plus petit que \texttt{S p}.
+        Rocq vérifie cela — tout \texttt{Fixpoint} termine.
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \textbf{Trace de \texttt{add 2 3} :}
+\begin{verbatim}
+  add (S (S O)) 3
+= S (add (S O) 3)
+= S (S (add O 3))
+= S (S 3)
+= 5
+\end{verbatim}
+    \end{column}
+  \end{columns}
+  \pause
+  % \begin{block}{Pourquoi cette contrainte ?}
+  %   Dans un système de types, un terme non-terminant peut habiter
+  %   \emph{n'importe quel type} — y compris \texttt{False}.
+  %   La récursion structurelle protège la \textbf{cohérence logique} du système.
+  % \end{block}
+  \note{
+    \textbf{Argument par le combinateur de point fixe Y (facultatif, si le temps le permet).}
+
+    Pour typer le combinateur Y, il faudrait une règle qui permette de déduire un habitant
+    de \texttt{A} à partir d'un habitant de \texttt{A -> A}. Autrement dit, il faudrait
+    admettre l'axiome \texttt{(A -> A) -> A}.
+
+    Or \texttt{A -> A} est trivialement habité (par \texttt{fun x => x}).
+    Avec cet axiome, on obtiendrait donc un habitant de \textbf{n'importe quel type},
+    y compris \texttt{False}. Le système deviendrait logiquement incohérent.
+
+    Démo Rocq en deux lignes — taper dans jsCoq :
+    \begin{verbatim}
+Axiom Y_type : forall A, (A -> A) -> A.
+Check Y_type False (fun x => x).  (* : False *)
+    \end{verbatim}
+
+    \textbf{Nuance importante (point faible de l'argument).}
+    L'argument montre que typer Y est incompatible avec la cohérence — mais on pourrait
+    imaginer un système qui autorise certains programmes non-terminants tout en excluant Y,
+    préservant ainsi la cohérence. La récursion structurelle est la solution choisie par Rocq :
+    elle garantit la terminaison de \emph{tous} les termes, ce qui est suffisant (et simple
+    à vérifier) pour assurer la cohérence. C'est un choix de conception, pas une nécessité absolue.
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 6 — POURQUOI « FIXPOINT » ? LIEN AVEC Y
+% ─────────────────────────────────────────────────────────────
+\begin{frame}[fragile]{Pourquoi « \texttt{Fixpoint} » ? Le lien avec le combinateur Y}
+  \begin{block}{Une définition récursive est un point fixe}
+    Définir \texttt{add} par \texttt{add n m := \ldots{} add \ldots} revient à chercher
+    \texttt{add} tel que $\texttt{add} = F\,\texttt{add}$ ($F$ capture le corps) —
+    \texttt{add} est un \textbf{point fixe} de $F$.
+  \end{block}
+  \pause
+  \begin{itemize}
+    \item En $\lambda$-calcul non typé, c'est le rôle du combinateur \textbf{Y} :
+      $\mathbf{Y}\,F =_\beta F\,(\mathbf{Y}\,F)$. Le mot-clé \texttt{Fixpoint} tire son nom de là.
+      \pause
+    \item Mais \textbf{Y ne peut pas être un terme ordinaire dans Rocq} :
+      son typage exigerait $\forall A,\;(A \to A) \to A$. Or $A \to A$ est habité par \texttt{fun x => x} : on habiterait \texttt{False} !
+  \end{itemize}
+\begin{verbatim}
+Axiom Y_type : forall A, (A -> A) -> A.
+Check Y_type False (fun x => x).   (* : False *)
+\end{verbatim}
+  \pause
+  \begin{alertblock}{\texttt{Fixpoint} = Y restreint au noyau}
+    Primitive du noyau : construit un point fixe après vérification de la récursion structurelle, sans admettre l'axiome dangereux.
+  \end{alertblock}
+  \note{
+    Faire la démo jsCoq des deux lignes --- l'effet est immédiat et frappant.
+    Puis souligner la nuance : l'argument montre que \emph{typer Y} est incompatible
+    avec la cohérence, pas que toute non-terminaison l'est.
+    La récursion structurelle est le choix de Rocq : elle garantit la terminaison totale,
+    ce qui est une condition suffisante (et simple à vérifier) pour la cohérence.
+    C'est un choix de conception, pas une nécessité logique absolue.
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 7 — CURRY-HOWARD : RÉCURSION = INDUCTION (anciennement 6)
+% ─────────────────────────────────────────────────────────────
+\begin{frame}{Curry-Howard : récursion = induction}
+  \begin{center}
+    \begin{tabular}{p{5.5cm}p{5.5cm}}
+      \hline
+      \textbf{Preuve par induction} & \textbf{Fonction récursive (\texttt{Fixpoint})} \\
+      \hline
+      Cas de base : montrer $P(0)$ & Cas de base : calculer \texttt{f O} \\[6pt]
+      Cas inductif : déduire $P(p + 1)$ en supposant $P(p)$ & Cas récursif : calculer \texttt{f (S p)} à partir de \texttt{f p} \\[6pt]
+      Hypothèse d'induction : $P(p)$ & Appel récursif : \texttt{f p} \\[6pt]
+      Conclusion : preuve de $\forall n. P(n)$ & Valeur de retour : terme de type \texttt{T} \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \pause
+  \medskip
+  \begin{alertblock}{Le principe de Curry-Howard}
+    Un \texttt{Fixpoint} sur \texttt{nat} \textbf{est} une preuve par induction sur \texttt{nat}.
+    Seule différence : la conclusion est un type de \emph{données} (e.g. \texttt{nat : Set})
+    et non une \emph{proposition} (\texttt{forall n, P n : Prop}).
+  \end{alertblock}
+  \note{
+    Faire lire le tableau ligne par ligne. Demander aux étudiants de relier mentalement
+    les deux colonnes à partir de l'exemple de \texttt{add} qu'on vient de voir.
+    Cas O → cas de base.
+    Appel récursif \texttt{add p m} → hypothèse d'induction.
+    C'est la même structure.
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 7 — LES LISTES
+% ─────────────────────────────────────────────────────────────
+\begin{frame}[fragile]{Les listes : un type inductif paramétré}
+  Même structure que \texttt{nat}, mais avec un paramètre de type et une donnée dans le constructeur récursif :
+
+\begin{verbatim}
+Inductive list (A : Type) : Type :=
+  | nil  : list A                       (* liste vide   *)
+  | cons : A -> list A -> list A.      (* ajout en tête *)
+\end{verbatim}
+  Notations : \texttt{[]} pour \texttt{nil}, \texttt{x :: l} pour \texttt{cons x l}, \texttt{[1;2;3]} pour \texttt{1 :: 2 :: 3 :: []}.
+  \pause
+  \medskip
+  \textbf{Exemple de fonction récursive — concaténation :}
+\begin{verbatim}
+Fixpoint app {A : Type} (l1 l2 : list A) : list A :=
+  match l1 with
+  | []     => l2
+  | h :: t => h :: (app t l2)
+  end.
+\end{verbatim}
+  \begin{itemize}
+    \item Récursion sur \texttt{l1} — \texttt{t} est structurellement plus petit que \texttt{h :: t}
+    \item Notation standard : \texttt{l1 ++ l2}
+  \end{itemize}
+  \note{
+    Aller vite — les étudiants ont maintenant la structure en tête.
+    Le paramètre \texttt{A} donne une liste polymorphe : \texttt{list nat}, \texttt{list bool}, etc.
+    Faire le parallèle avec nat : \texttt{nil} joue le rôle de \texttt{O} (cas de base),
+    \texttt{cons} joue le rôle de \texttt{S} (cas récursif, mais avec une donnée en plus).
+    Puis passer en jsCoq : \texttt{Print list.} et taper \texttt{app}.
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 8 — NAT_IND : LE PRINCIPE D'INDUCTION
+% ─────────────────────────────────────────────────────────────
+\begin{frame}[fragile]{Le principe d'induction : \texttt{nat\_ind}}
+  Depuis la définition \texttt{Inductive nat}, Rocq dérive automatiquement l'éliminateur :
+  \medskip
+\begin{verbatim}
+nat_ind :
+  forall (P : nat -> Prop),
+  P O ->
+  (forall p : nat, P p -> P (S p)) ->
+  forall n : nat, P n
+\end{verbatim}
+  \pause
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{enumerate}
+        \item Si $P(\texttt{O})$
+        \item Et si, pour tout $p$, $P(p)$ implique $P(\texttt{S}\,p)$
+        \item Alors $P(n)$ pour tout $n$
+      \end{enumerate}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \begin{center}
+        \Large
+        $\dfrac{P(\texttt{O}) \qquad \forall p,\; P(p) \Rightarrow P(\texttt{S}\,p)}{\forall n,\; P(n)}$
+      \end{center}
+    \end{column}
+  \end{columns}
+  \pause
+  \begin{block}{Vérificationnisme (Leçon 4)}
+    Comme \texttt{and\_ind} et \texttt{or\_ind}, \texttt{nat\_ind} est généré par Rocq
+    à partir des \emph{constructeurs} de \texttt{nat} — on ne l'écrit pas à la main.
+  \end{block}
+  \note{
+    Lire le type de \texttt{nat\_ind} à voix haute, en traduisant chaque composant.
+    \texttt{P O} = cas de base.
+    \texttt{forall p, P p -> P (S p)} = cas inductif (l'hypothèse d'induction est \texttt{P p}).
+    \texttt{forall n, P n} = la conclusion universelle.
+    Puis montrer en jsCoq : \texttt{Check nat\_ind.} et \texttt{Check list\_ind.}
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 9 — LA TACTIQUE INDUCTION
+% ─────────────────────────────────────────────────────────────
+\begin{frame}[fragile]{La tactique \texttt{induction} : une application de \texttt{nat\_ind}}
+  \textbf{Observation clé :}
+  \begin{itemize}
+    \item \texttt{0 + n = n} est vrai \emph{par définition} de \texttt{add} $\Rightarrow$ \texttt{reflexivity} suffit.
+    \item \texttt{n + 0 = n} n'est pas réductible sans connaître la forme de \texttt{n} $\Rightarrow$ il faut raisonner par cas sur \texttt{n}.
+  \end{itemize}
+  \pause
+  \medskip
+\begin{verbatim}
+Lemma add_0_r : forall n : nat, n + 0 = n.
+Proof.
+  intro n.
+  induction n as [| p IH].
+  -             (* but : 0 + 0 = 0       *) reflexivity.
+  -             (* but : S p + 0 = S p   *)
+                (* IH  : p + 0 = p       *)
+    simpl.      (* S p + 0 ~> S (p + 0)  *)
+    rewrite IH. (* S (p + 0) ~> S p      *)
+    reflexivity.
+Qed.
+\end{verbatim}
+  \texttt{induction n as [| p IH]} génère deux sous-buts — un par constructeur de \texttt{nat}.
+  \note{
+    Avant de taper cette preuve en live, montrer d'abord que \texttt{reflexivity} échoue sur
+    \texttt{n + 0 = n}. C'est le moment pédagogique le plus important de la leçon :
+    comprendre \emph{pourquoi} l'induction est nécessaire ici.
+
+    Puis taper la preuve lentement. Après \texttt{induction n as [| p IH]}, s'arrêter
+    et montrer les deux sous-buts dans le panneau de droite.
+    Demander aux étudiants : « Quel est le premier sous-but ? » — \texttt{0 + 0 = 0}.
+    « Le deuxième ? » — \texttt{S p + 0 = S p} avec \texttt{IH : p + 0 = p}.
+    Puis compléter la preuve en expliquant chaque étape.
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 10 — LA CONNEXION COMPLÈTE
+% ─────────────────────────────────────────────────────────────
+\begin{frame}{La connexion complète}
+  \begin{center}
+    \begin{tikzpicture}[
+        >=Stealth,
+        box/.style={draw, rounded corners=4pt, text width=3.6cm, align=center,
+        minimum height=1cm, font=\small},
+        arr/.style={->, thick},
+        lbl/.style={font=\scriptsize, text=gray}
+      ]
+      \node[box, fill=blue!10] (ind) at (0, 0)
+      {\texttt{Inductive nat}\\{\scriptsize deux constructeurs : O, S}};
+
+      \node[box, fill=orange!10] (natind) at (-3.5, -2.8)
+      {\texttt{nat\_ind}\\{\scriptsize univers \texttt{Prop}}};
+
+      \node[box, fill=orange!10] (natrec) at (3.5, -2.8)
+      {\texttt{nat\_rec}\\{\scriptsize univers \texttt{Set}}};
+
+      \node[box, fill=green!10] (tac) at (-3.5, -5.2)
+      {tactique \texttt{induction}};
+
+      \node[box, fill=green!10] (fix) at (3.5, -5.2)
+      {\texttt{Fixpoint}};
+
+      \draw[arr] (ind) -- node[left, lbl] {dérivation auto.} (natind);
+      \draw[arr] (ind) -- node[right, lbl] {dérivation auto.} (natrec);
+      \draw[arr] (natind) -- node[left, lbl] {applique} (tac);
+      \draw[arr] (natrec) -- node[right, lbl] {utilise} (fix);
+
+      \node[font=\small\itshape, text=gray] at (0, -4)
+      {même éliminateur, deux univers cibles};
+    \end{tikzpicture}
+  \end{center}
+  \note{
+    C'est le point culminant de la leçon. Un seul \texttt{Inductive} engendre
+    à la fois le principe de récursion pour les fonctions (\texttt{nat\_rec})
+    et le principe d'induction pour les preuves (\texttt{nat\_ind}).
+    La différence ? Uniquement l'univers cible : \texttt{Type} pour les données,
+    \texttt{Prop} pour les preuves.
+    Curry-Howard complète le tableau : récursion et induction sont la même chose
+    vue à travers deux lunettes différentes.
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 11 — SYNTHÈSE ET OUVERTURE
+% ─────────────────────────────────────────────────────────────
+\begin{frame}{Synthèse et ouverture}
+  \begin{center}
+    \footnotesize
+    \begin{tabular}{p{2.6cm}p{3.8cm}p{3.8cm}}
+      \hline
+      & \textbf{Propositions (L4)} & \textbf{Données (L5)} \\
+      \hline
+      Mécanisme & \texttt{Inductive \ldots : Prop} & \texttt{Inductive \ldots : Set/Type} \\[3pt]
+      Constructeurs & règles d'introduction & constructeurs de données \\[3pt]
+      Élimination & \texttt{match} & \texttt{match} \\[3pt]
+      Éliminateur dérivé & \texttt{and\_ind}, \texttt{or\_ind} & \texttt{nat\_rec}, \texttt{list\_rec}, \texttt{nat\_ind}, \texttt{list\_ind} \\[3pt]
+      Tactique de preuve & \texttt{destruct} & \texttt{induction} \\
+      % Curry-Howard & preuve = terme & programme = preuve \\
+      \hline
+    \end{tabular}
+  \end{center}
+  \pause
+  \bigskip
+  \begin{alertblock}{Leçon 6 — Vérification formelle}
+    La semaine prochaine, on prouvera que \texttt{rev (rev l) = l}. On verra ce que signifie faire
+    de la \emph{vérification formelle} : prouver qu'un programme fait ce qu'on attend de lui.
+  \end{alertblock}
+  \note{
+    Lire le tableau en soulignant la colonne de gauche est connue, la colonne de droite est nouvelle.
+    L'unité conceptuelle derrière les deux colonnes : le Calcul des Constructions Inductives (CIC),
+    qui est le fondement logique de Rocq.
+
+    Transition vers les exercices : « On va maintenant travailler en autonomie.
+    Ouvrez jsCoq avec le fichier d'exercices. »
+  }
+\end{frame}
+
+\end{document}

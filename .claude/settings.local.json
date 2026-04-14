@@ -15,7 +15,30 @@
       "Bash(pdflatex -interaction=nonstopmode /Users/pablo/Documents/work/cours/LFI-2026/lesson4/exos.tex)",
       "Bash(coqc /Users/pablo/Documents/work/cours/LFI-2026/lesson4/exos_bonus.v)",
       "Bash(coqc /Users/pablo/Documents/work/cours/LFI-2026/lesson4/exos_bonus_correction.v)",
-      "Bash(echo \"EXIT:$?\")"
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(grep \"\\\\.v$\")",
+      "Bash(grep -l \"Script d'accompagnement\\\\|Live Coding\\\\|cours\" /Users/pablo/Documents/work/cours/LFI-2026/lesson*/exos*.v)",
+      "Bash(coqdoc --version)",
+      "Bash(python3 -m alectryon --version)",
+      "Bash(alectryon --version)",
+      "Bash(opam list:*)",
+      "Bash(pip3 install:*)",
+      "Bash(pipx install:*)",
+      "Bash(alectryon --help)",
+      "Bash(opam install:*)",
+      "Bash(coq-lsp --version)",
+      "Bash(rocq --version)",
+      "Bash(alectryon --coq-driver coqlsp lesson5/exos.v --output-directory lesson5/html/)",
+      "Bash(coqdoc --help)",
+      "Bash(coqdoc --html --utf8 --toc --no-index -o lesson5/exos.html lesson5/exos.v)",
+      "Bash(ls -la /Users/pablo/Documents/work/cours/LFI-2026/lesson5/*.css)",
+      "Bash(coqc -R . LFI lesson5/exos.v)",
+      "Bash(open /Users/pablo/Documents/work/cours/LFI-2026/lesson5/exos.html)",
+      "Bash(pygmentize -L lexers)",
+      "Bash(pdflatex -shell-escape -interaction=nonstopmode exos.tex)"
+    ],
+    "additionalDirectories": [
+      "/Users/pablo/Documents/work/cours/LFI-2026/lesson5"
     ]
   }
 }

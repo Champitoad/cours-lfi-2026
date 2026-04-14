@@ -1,0 +1,412 @@
+% Compilation : pdflatex -shell-escape exos.tex
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage[top=2.5cm, bottom=2.5cm, left=2.8cm, right=2.8cm]{geometry}
+\usepackage{minted}
+\usepackage{xcolor}
+\usepackage[framemethod=TikZ]{mdframed}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[hidelinks]{hyperref}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{fontawesome5}
+
+% ── Couleurs ──────────────────────────────────────────────────────────────────
+\definecolor{partcolor}{RGB}{25, 65, 140}
+\definecolor{codebg}{RGB}{250, 250, 252}
+\definecolor{rappelbg}{RGB}{255, 252, 230}
+\definecolor{rappelframe}{RGB}{190, 155, 40}
+\definecolor{exobg}{RGB}{240, 247, 255}
+\definecolor{exoframe}{RGB}{55, 115, 205}
+\definecolor{bonusbg}{RGB}{242, 252, 242}
+\definecolor{bonusframe}{RGB}{60, 160, 80}
+\definecolor{todofg}{RGB}{175, 50, 50}
+
+% ── Titres de sections ─────────────────────────────────────────────────────────
+\titleformat{\section}
+{\large\bfseries\color{partcolor}}
+{\thesection.}{0.5em}{}[\vspace{-4pt}\rule{\linewidth}{1.2pt}]
+
+\titleformat{\subsection}
+{\normalsize\bfseries}
+{}{}{}
+
+% ── Boîtes ────────────────────────────────────────────────────────────────────
+\mdfdefinestyle{rappelstyle}{
+  backgroundcolor=rappelbg,
+  linecolor=rappelframe,
+  linewidth=1.2pt,
+  roundcorner=4pt,
+  innerleftmargin=10pt,
+  innerrightmargin=10pt,
+  innertopmargin=6pt,
+  innerbottommargin=6pt,
+  skipabove=8pt,
+  skipbelow=8pt,
+}
+
+\mdfdefinestyle{exostyle}{
+  backgroundcolor=exobg,
+  linecolor=exoframe,
+  linewidth=2pt,
+  topline=false,
+  bottomline=false,
+  rightline=false,
+  innerleftmargin=12pt,
+  innerrightmargin=8pt,
+  innertopmargin=6pt,
+  innerbottommargin=6pt,
+  skipabove=6pt,
+  skipbelow=6pt,
+}
+
+\mdfdefinestyle{bonusstyle}{
+  backgroundcolor=bonusbg,
+  linecolor=bonusframe,
+  linewidth=2pt,
+  topline=false,
+  bottomline=false,
+  rightline=false,
+  innerleftmargin=12pt,
+  innerrightmargin=8pt,
+  innertopmargin=6pt,
+  innerbottommargin=6pt,
+  skipabove=6pt,
+  skipbelow=6pt,
+}
+
+\newenvironment{rappel}{
+\begin{mdframed}[style=rappelstyle]}{
+\end{mdframed}}
+\newenvironment{exo}{
+\begin{mdframed}[style=exostyle]}{
+\end{mdframed}}
+\newenvironment{bonus}{
+\begin{mdframed}[style=bonusstyle]}{
+\end{mdframed}}
+
+% ── Code Coq ──────────────────────────────────────────────────────────────────
+\setminted[coq]{
+  bgcolor=codebg,
+  fontsize=\small,
+  breaklines=true,
+  breakanywhere=false,
+  autogobble=true,
+}
+
+% Commande pour code inline (évite les problèmes d'échappement)
+\newcommand{\cq}[1]{\mintinline{coq}{#1}}
+
+% Mise en valeur de [todo]
+\newcommand{\todoph}{\textcolor{todofg}{\textbf{\texttt{todo}}}}
+
+% ── Page de titre ──────────────────────────────────────────────────────────────
+\title{%
+  \vspace{-1.5cm}%
+  \textbf{Leçon 5 : Induction et Programmation Fonctionnelle}\\[0.4em]
+  \large Feuille d'exercices%
+}
+\date{}
+\author{}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+\maketitle
+\vspace{-1.2cm}
+
+Aujourd'hui on a vu que le mécanisme \cq{Inductive} s'applique aussi aux
+\textbf{données} : les entiers naturels (\cq{nat}) et les listes (\cq{list}).
+
+Un type inductif est défini par ses \textbf{constructeurs} :
+\begin{itemize}[noitemsep,topsep=2pt]
+  \item \cq{nat} a deux constructeurs : \cq{O} (zéro) et \cq{S} (successeur).
+  \item \cq{list A} a deux constructeurs : \cq{nil} (liste vide) et \cq{cons}
+    (ajout en tête).
+\end{itemize}
+
+Pour calculer avec ces données, on utilise le filtrage de motifs
+(\cq{match ... with}). Pour des fonctions qui s'appellent elles-mêmes,
+on utilise \cq{Fixpoint}. Pour prouver des propriétés, on utilise la
+tactique \cq{induction}.
+
+Ces exercices vous guident à travers chaque étape.
+Remplacez \todoph{} par votre solution.
+Le préambule du fichier est :
+
+\begin{minted}{coq}
+  Require Import List.
+  Import ListNotations.
+  Axiom todo : forall {X : Type}, X.
+\end{minted}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Fonctions sur les entiers naturels}
+
+\begin{rappel}
+  \textbf{Rappel — définition de \cq{nat}.}
+\begin{minted}{coq}
+  Inductive nat : Set :=
+    | O : nat
+    | S : nat -> nat.
+\end{minted}
+  Les notations \cq{0}, \cq{1}, \cq{2}\ldots{} sont du sucre syntaxique pour
+  \cq{O}, \cq{S O}, \cq{S (S O)}\ldots{}
+  Le \cq{+} standard de Rocq est défini exactement comme \cq{add} vu en cours.
+\end{rappel}
+
+% ── Exercice 1 ──────────────────────────────────────────────────────────────
+\subsection{Exercice 1 — la fonction \og est-ce zéro ? \fg{}}
+
+\cq{is_zero n} renvoie \cq{true} si $n = 0$, \cq{false} sinon.
+
+\textit{Remarque :} \cq{bool} est lui aussi un type inductif, avec deux
+constructeurs : \cq{true} et \cq{false}.
+
+\begin{exo}
+\begin{minted}{coq}
+  Definition is_zero (n : nat) : bool :=
+    match n with
+    | O   => todo   (* que renvoie-t-on quand n = 0 ?   *)
+    | S p => todo   (* que renvoie-t-on quand n = S p ? *)
+    end.
+
+  Compute is_zero 0.   (* attendu : true  *)
+  Compute is_zero 3.   (* attendu : false *)
+\end{minted}
+\end{exo}
+
+% ── Exercice 2 ──────────────────────────────────────────────────────────────
+\subsection{Exercice 2 — doubler un entier}
+
+\cq{double n} calcule $n + n$.
+
+Rappel du schéma de récursion sur \cq{nat} :
+\begin{itemize}[noitemsep,topsep=2pt]
+  \item Cas de base : \cq{double O = ?}
+  \item Cas récursif : \cq{double (S m) = ?} en utilisant \cq{double m}.
+\end{itemize}
+
+\textit{Indice :} on sait mathématiquement (par distributivité) que
+\[
+  2 \times (m + 1) = (2 \times m) + 2.
+\]
+Il suffit alors d'orienter l'équation pour en faire une règle de calcul
+dans le cas récursif.
+
+\begin{exo}
+\begin{minted}{coq}
+  Fixpoint double (n : nat) : nat :=
+    match n with
+    | O   => todo       (* double de 0 ? *)
+    | S m => todo       (* double de S m, connaissant [double m] ? *)
+    end.
+
+  Compute double 0.   (* attendu : 0 *)
+  Compute double 3.   (* attendu : 6 *)
+\end{minted}
+\end{exo}
+
+% ── Exercice 3 ──────────────────────────────────────────────────────────────
+\subsection{Exercice 3 — la multiplication}
+
+\cq{mul n m} calcule $n \times m$.
+
+\textit{Indice :} multiplier par un successeur, c'est ajouter une fois de plus :
+\[
+  (p + 1) \times m = (p \times m) + m.
+\]
+(Vous pourrez utiliser le \cq{+} standard de Rocq.)
+
+\begin{exo}
+\begin{minted}{coq}
+  Fixpoint mul (n m : nat) : nat :=
+    (* Comme pour l'addition, vous procèderez par récursion structurelle sur
+       le premier argument [n] à l'aide de [match n with ...] *)
+    todo.
+
+  Compute mul 3 4.   (* attendu : 12 *)
+  Compute mul 0 5.   (* attendu : 0  *)
+\end{minted}
+\end{exo}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Fonctions sur les listes}
+
+\begin{rappel}
+  \textbf{Rappel — définition de \cq{list}.}
+\begin{minted}{coq}
+  Inductive list (A : Type) : Type :=
+    | nil  : list A
+    | cons : A -> list A -> list A.
+\end{minted}
+  Notations : \cq{[]} pour \cq{nil}, \cq{x :: l} pour \cq{cons x l}.\\
+  \cq{h :: t} se lit : « liste dont la tête est \cq{h} et la queue est \cq{t} ».\\
+  La récursion suit la même structure : cas \cq{[]} (liste vide) et cas \cq{h :: t}.
+\end{rappel}
+
+% ── Exercice 4 ──────────────────────────────────────────────────────────────
+\subsection{Exercice 4 — longueur d'une liste}
+
+\cq{my_length l} renvoie le nombre d'éléments de \cq{l}.
+
+\textit{Indice :}
+\begin{itemize}[noitemsep,topsep=2pt]
+  \item La liste vide a longueur 0.
+  \item La liste \cq{h :: t} a la longueur de sa queue \cq{t} plus 1.
+\end{itemize}
+
+\begin{exo}
+\begin{minted}{coq}
+  Fixpoint my_length {A : Type} (l : list A) : nat :=
+    match l with
+    | []     => todo   (* longueur de la liste vide ?                    *)
+    | h :: t => todo   (* longueur de [h :: t], connaissant [my_length t] ? *)
+    end.
+
+  Compute my_length [1; 2; 3].        (* attendu : 3 *)
+  Compute my_length ([] : list nat).  (* attendu : 0 *)
+\end{minted}
+\end{exo}
+
+% ── Exercice 5 ──────────────────────────────────────────────────────────────
+\subsection{Exercice 5 — inverser une liste}
+
+\cq{my_rev l} renvoie \cq{l} dans l'ordre inverse.
+
+\textit{Indice :} pour inverser \cq{h :: t}, on inverse d'abord \cq{t},
+puis on place \cq{h} à la suite du résultat avec l'opérateur de
+concaténation \cq{++}.
+
+Par exemple, inverser \cq{[1; 4; 7]} revient à inverser \cq{[4; 7]},
+ce qui résulte en \cq{[7; 4]}, puis à concaténer à droite la liste
+avec pour unique élément 1 :
+\[
+  \cq{[7; 4]} \mathbin{\texttt{++}} \cq{[1]} = \cq{[7; 4; 1]}
+\]
+
+\begin{exo}
+\begin{minted}{coq}
+  Fixpoint my_rev {A : Type} (l : list A) : list A :=
+    (* Vous procèderez par récursion structurelle sur la liste [l] à l'aide
+       de [match l with ...] *)
+    todo.
+
+  Compute my_rev [1; 2; 3].        (* attendu : [3; 2; 1] *)
+  Compute my_rev ([] : list nat).  (* attendu : []         *)
+\end{minted}
+\end{exo}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Preuves par induction}
+
+On prouve maintenant des propriétés sur le \cq{+} standard de Rocq.
+La clé : \cq{n + m} se calcule (est défini) par récursion sur \cq{n}.
+
+Cela signifie que :
+\begin{enumerate}[noitemsep,topsep=2pt]
+  \item \cq{0 + m} se réduit immédiatement en \cq{m}
+    \quad$\Rightarrow$\quad \cq{reflexivity} suffit.
+  \item \cq{S p + m} se réduit en \cq{S (p + m)}
+    \quad$\Rightarrow$\quad \cq{simpl} fait cette étape.
+  \item $n + 0 = n$ pour $n$ quelconque
+    \quad$\Rightarrow$\quad il faut \cq{induction}.
+\end{enumerate}
+
+On a donc une égalité \textit{définitionnelle} dans les cas 1 et 2, qui peut
+être résolue automatiquement par Rocq, mais une égalité strictement
+\textit{propositionnelle} dans le cas 3, qui nécessite une preuve manuelle
+(par induction).
+
+\noindent Schéma général d'une preuve par induction sur \cq{n} :
+
+\begin{minted}{coq}
+  induction n as [| p IH].
+  - (* but : propriété pour 0 *) ...
+  - (* but : propriété pour S p, IH donne la propriété pour p
+       (hypothèse d'induction) *) ...
+\end{minted}
+
+% ── Exercice 6 ──────────────────────────────────────────────────────────────
+\subsection{Exercice 6 — le successeur commute avec l'addition (à droite)}
+
+\textbf{Énoncé :} $\forall\, n, m \in \mathbb{N},\quad n + (\mathtt{S}\ m) = \mathtt{S}\ (n+m)$
+
+Ce lemme est utile pour la suite — il exprime que
+« additionner le successeur de $m$ » = « prendre le successeur de $n + m$ ».
+
+\textit{Preuve guidée :}
+\begin{itemize}[noitemsep,topsep=2pt]
+  \item Induction sur \cq{n}.
+  \item Cas \cq{O} : \cq{0 + S m = S (0 + m)}.
+    Les deux côtés se réduisent à \cq{S m}.
+  \item Cas \cq{S p} : but \cq{S p + S m = S (S p + m)}.\\
+    Après \cq{simpl}, le but devient \cq{S (p + S m) = S (S (p + m))}.\\
+    Utiliser l'hypothèse d'induction \cq{IH : p + S m = S (p + m)}.\\
+    Puis \cq{reflexivity}.
+\end{itemize}
+
+\begin{exo}
+\begin{minted}{coq}
+  Lemma add_succ_r : forall n m : nat, n + S m = S (n + m).
+  Proof.
+    intros n m.
+    induction n as [| p IH].
+    - (* but : 0 + S m = S (0 + m) *)
+      admit.
+    - (* but : S p + S m = S (S p + m) *)
+      (* IH  : p + S m = S (p + m)    *)
+      simpl.      (* S p + S m devient S (p + S m), et S p + m devient S (p + m) *)
+      admit.      (* utiliser rewrite IH, puis reflexivity *)
+  Admitted.
+\end{minted}
+\end{exo}
+
+% ── Exercice 7 ──────────────────────────────────────────────────────────────
+\subsection{Exercice 7 — l'addition est associative}
+
+\textbf{Énoncé :} $\forall\, n, m, p \in \mathbb{N},\quad (n+m)+p = n+(m+p)$
+
+\textit{Indice :} la structure de la preuve est identique à celle de
+l'exercice 6, par induction sur \cq{n}.
+
+\begin{exo}
+\begin{minted}{coq}
+  Lemma add_assoc : forall n m p : nat, (n + m) + p = n + (m + p).
+  Proof.
+  Admitted.
+\end{minted}
+\end{exo}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section*{Bonus — longueur de la concaténation}
+
+\begin{bonus}
+  \textbf{Énoncé :}
+  \[
+    \forall\, A,\; \forall\, \ell_1, \ell_2 : \mathrm{list}\;A,\quad
+    |\ell_1 \mathbin{\texttt{++}} \ell_2| \;=\; |\ell_1| + |\ell_2|
+  \]
+
+  \textit{Indice :} induction sur \cq{l1}.
+  Même schéma que les preuves précédentes, mais sur les listes :
+  cas de base \cq{nil} et cas récursif \cq{cons h t}.
+
+\begin{minted}{coq}
+  Lemma length_app : forall (A : Type) (l1 l2 : list A),
+      my_length (l1 ++ l2) = my_length l1 + my_length l2.
+  Proof.
+    intros A l1 l2.
+    induction l1 as [| h t IH].
+    - admit.
+    - admit.
+  Admitted.
+\end{minted}
+\end{bonus}
+
+\end{document}
