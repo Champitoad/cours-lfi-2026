@@ -35,7 +35,23 @@
       "Bash(coqc -R . LFI lesson5/exos.v)",
       "Bash(open /Users/pablo/Documents/work/cours/LFI-2026/lesson5/exos.html)",
       "Bash(pygmentize -L lexers)",
-      "Bash(pdflatex -shell-escape -interaction=nonstopmode exos.tex)"
+      "Bash(pdflatex -shell-escape -interaction=nonstopmode exos.tex)",
+      "WebFetch(domain:docs.openclaw.ai)",
+      "Bash(npm --version)",
+      "Bash(brew --version)",
+      "Read(//tmp/**)",
+      "Read(//private/tmp/**)",
+      "Bash(openclaw approvals:*)",
+      "Bash(openclaw channels:*)",
+      "Bash(openclaw capability:*)",
+      "Bash(docker run:*)",
+      "Bash(openclaw plugins:*)",
+      "Bash(openclaw config:*)",
+      "Read(//opt/homebrew/lib/node_modules/openclaw/dist/extensions/discord/**)",
+      "Bash(openclaw skills:*)",
+      "WebFetch(domain:www.reddit.com)",
+      "WebFetch(domain:clawr.ing)",
+      "Bash(openclaw sandbox:*)"
     ],
     "additionalDirectories": [
       "/Users/pablo/Documents/work/cours/LFI-2026/lesson5"
