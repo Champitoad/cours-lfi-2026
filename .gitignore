@@ -47,3 +47,6 @@ edukera.tautos
 **/_minted*
 *.vo*
 *.glob
+
+dm/
+evaluation/
