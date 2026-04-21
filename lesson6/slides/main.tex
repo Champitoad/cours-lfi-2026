@@ -1,0 +1,551 @@
+\documentclass[aspectratio=169]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{pgfpages}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, decorations.pathreplacing, calc, shapes.geometric, fit, backgrounds}
+\usepackage[backend=biber, style=alphabetic, url=true]{biblatex}
+\addbibresource{../../biblio.bib}
+
+\graphicspath{{images/}}
+\usetheme{Boadilla}
+\usecolortheme{seahorse}
+\setbeameroption{show notes on second screen=right}
+
+\title{Leçon 6 : Vérification formelle à l'ère de l'IA}
+\subtitle{Promesses, retournements, questions ouvertes}
+\author{Pablo Donato}
+\institute{Logique et Fondements de l'Informatique}
+\date{Année 2026}
+
+\begin{document}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 1 — TITRE
+% ─────────────────────────────────────────────────────────────
+\begin{frame}
+  \titlepage
+  \note{
+    \textbf{Cadre}
+    \begin{itemize}
+      \item Dernière séance ; pas de nouveau concept technique.
+      \item On prend du recul philosophique sur les 6 semaines.
+    \end{itemize}
+    \textbf{Fil dialectique}
+    \begin{itemize}
+      \item Acte I --- la promesse (maths, sûreté, IA safety).
+      \item Acte II --- le retournement 2026 (trois fractures).
+      \item Acte III --- questions ouvertes, discussion.
+    \end{itemize}
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% ACTE I — LA PROMESSE
+% ─────────────────────────────────────────────────────────────
+\section{Acte I — La promesse}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 2 — DE LA VÉRIFICATION CLASSIQUE AU RÊVE LEIBNIZIEN
+% ─────────────────────────────────────────────────────────────
+\begin{frame}{Du rêve de Leibniz à la vérification formelle}
+  \begin{columns}
+    \begin{column}{0.55\textwidth}
+      \textbf{Leibniz, XVII\textsuperscript{e} :} \emph{characteristica universalis} + \emph{calculus ratiocinator}
+      \medskip
+
+      \textbf{Réalisations :}
+      \begin{itemize}
+        \item seL4~\cite{klein2009sel4} — noyau OS prouvé
+        \item CompCert~\cite{leroy2009compcert} — compilateur C certifié
+        \item 4 Couleurs~\cite{gonthier2008fourcolor}, Kepler~\cite{hales2017flyspeck}
+      \end{itemize}
+      \medskip
+      \small\emph{Mais : 20~années-personnes pour seL4, 6 pour CompCert.}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{block}{Le pari}
+        Garanties \emph{mathématiques} là où l'ingénierie classique n'en offre pas.
+      \end{block}
+      \medskip
+      \small
+      Benzmüller~\cite{benzmullerUniversalReasoningRational2017} :
+      logique d'ordre supérieur comme \emph{meta-logique universelle}.
+    \end{column}
+  \end{columns}
+  \note{
+    \textbf{Recadrage}
+    \begin{itemize}
+      \item Paysage connu depuis leçon 1, mais présenté ici comme un \emph{pari}.
+      \item Garantie \emph{mathématique} vs. statistique (tests).
+    \end{itemize}
+    \textbf{Ordres de grandeur du goulot humain}
+    \begin{itemize}
+      \item Preuve math $\approx 10$--$20\times$ le coût de la rédaction informelle.
+      \item \emph{Calculemus} de Leibniz --- à reprendre en clôture.
+    \end{itemize}
+    \textbf{Question qui structure l'acte I}
+    \begin{itemize}
+      \item Et si l'IA venait lever ce goulot ?
+    \end{itemize}
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 3 — L'IA GÉNÈRE, LE NOYAU VÉRIFIE (TIKZ)
+% ─────────────────────────────────────────────────────────────
+\begin{frame}{La nouvelle division du travail : l'IA génère, le noyau vérifie}
+  \begin{center}
+    \begin{tikzpicture}[
+        >=Stealth,
+        box/.style={draw, rounded corners=4pt, align=center, minimum height=1.1cm, font=\small},
+        arr/.style={->, thick},
+        lbl/.style={font=\scriptsize, text=gray}
+      ]
+      \node[box, fill=blue!15, text width=3cm] (human) at (-5.5, 0) {Humain\\{\scriptsize spécification, intuition}};
+      \node[box, fill=orange!15, text width=3cm] (llm) at (0, 0) {LLM / IA\\{\scriptsize génère des tentatives de preuve}};
+      \node[box, fill=green!15, text width=3cm] (kernel) at (5.5, 0) {Noyau Rocq/Lean\\{\scriptsize vérifie $\lambda$-terme}};
+
+      \draw[arr] (human) -- node[above, lbl] {énoncé} node[below, lbl] {\texttt{Theorem T : \ldots}} (llm);
+      \draw[arr] (llm) -- node[above, lbl] {tactiques / terme} (kernel);
+      \draw[arr, dashed] (kernel.south) to[bend left=30] node[below, lbl] {échec / feedback} (llm.south);
+      \draw[arr, dashed] (kernel.north) to[bend right=40] node[above=4pt, lbl] {certificat vérifié} (human.north);
+    \end{tikzpicture}
+  \end{center}
+  \begin{itemize}
+    \item \textbf{Autoformalisation} : informel $\to$ Rocq/Lean~\cite{buzzardMathematicalReasoningComputer2025}
+    \item \textbf{Tactic search} : AlphaProof~\cite{alphaproof2024}
+    \item \textbf{L'IA propose, le noyau dispose}
+  \end{itemize}
+  \note{
+    \textbf{Asymétrie à souligner}
+    \begin{itemize}
+      \item LLM faillible : hallucinations, lemmes inventés $\to$ sans conséquence.
+      \item Noyau rejette tout $\lambda$-terme mal typé.
+      \item Inédit parmi les applications d'IA : pas besoin de faire confiance au modèle.
+    \end{itemize}
+    \textbf{Pont leçon 5}
+    \begin{itemize}
+      \item \texttt{Fixpoint} bien typé $\Rightarrow$ terminaison garantie, peu importe l'auteur.
+    \end{itemize}
+    \textbf{Nuance à glisser}
+    \begin{itemize}
+      \item Division du travail robuste \emph{en apparence} --- acte II reviendra dessus.
+    \end{itemize}
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 4 — ÉTAT DE L'ART : MATHÉMATIQUES
+% ─────────────────────────────────────────────────────────────
+\begin{frame}{Mathématiques formalisées : l'appétit de l'IA}
+  \begin{columns}
+    \begin{column}{0.55\textwidth}
+      \textbf{Avigad}~\cite{avigadMathematicsFormalTurn2023} — \emph{tournant formel}
+      \smallskip
+
+      \textbf{Buzzard}~\cite{buzzardMathematicalReasoningComputer2025,leanlearningseminarProfessorKevinBuzzard2025} —
+      après le calcul, le \emph{raisonnement} ?
+      \medskip
+
+      \textbf{Jalons :}
+      \begin{itemize}
+        \item Liquid Tensor~\cite{scholze2021liquid} / Mathlib
+        \item AlphaProof, IMO 2024~\cite{alphaproof2024}
+        \item \textbf{2026} : problèmes d'Erd\H{o}s~\cite{erdosproblems} résolus\\
+          par Aristotle~\cite{aristotle2026erdos728}, Aletheia~\cite{deepmind2026aletheia}
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{alertblock}{Severini~\cite{severini2026infrastructure}}
+        \small
+        $\approx 0{,}05\%$ des maths formalisées.\\
+        L'IA a faim de corpus vérifié : la formalisation devient \emph{application phare}.
+      \end{alertblock}
+      \medskip
+      \small\emph{Massot~\cite{massotWhyFormalizeMathematics} : outil, pas substitut.}
+    \end{column}
+  \end{columns}
+  \note{
+    \textbf{Seuil qualitatif fin 2025 -- début 2026}
+    \begin{itemize}
+      \item Passage \emph{maths de compétition} (IMO) $\to$ \emph{maths de recherche}.
+      \item Janv.\ 2026 : problèmes \#397, \#728, \#729 résolus en une semaine (GPT-5.2 Pro + Aristotle).
+      \item Févr.\ 2026 : Aletheia (Gemini 3 Deep Think) résout 4 problèmes dont \#1051.
+      \item $\approx 100$ énoncés basculés en \og résolus~\fg{} depuis octobre 2025.
+    \end{itemize}
+    \textbf{Severini --- inversion du moteur}
+    \begin{itemize}
+      \item Moteur plus seulement scientifique : aussi \emph{économique/infrastructurel}.
+      \item Labos d'IA ont un intérêt direct à financer la formalisation.
+    \end{itemize}
+    \textbf{Nuance Massot}
+    \begin{itemize}
+      \item Formalisation = outil, pas substitut.
+      \item Pluralité de styles (informel / semi-formel / mécanisé) qui coexistent.
+    \end{itemize}
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 5 — EXTENSION : SÛRETÉ DE L'IA
+% ─────────────────────────────────────────────────────────────
+\begin{frame}{Au-delà des maths : sûreté de l'IA par la preuve}
+  \begin{block}{Tegmark \& Omohundro~\cite{tegmark2023provably}}
+    \emph{Provably Safe Systems} — seule voie vers une AGI contrôlable.
+  \end{block}
+  \pause
+  \medskip
+  \begin{enumerate}
+    \item Alignement (RLHF, monitoring) $\to$ garanties \emph{statistiques}
+    \item Preuve formelle $\to$ garantie \emph{mathématique}
+    \item L'IA rend l'approche \emph{faisable} à grande échelle
+  \end{enumerate}
+  \pause
+  \medskip
+  \begin{alertblock}{La promesse ultime}
+    Vérification $+$ IA $=$ sûreté des systèmes critiques, \emph{y compris} des IA.
+  \end{alertblock}
+  \note{
+    \textbf{Reconstruire l'argument à voix haute}
+    \begin{itemize}
+      \item RLHF, monitoring : garanties \emph{statistiques}.
+      \item À grande échelle, \og 1 cas sur 1000~\fg{} devient inacceptable.
+      \item Seule la preuve formelle fournit l'assurance requise.
+      \item Ce qui rend l'approche faisable : c'est l'IA qui rédige les preuves.
+    \end{itemize}
+    \textbf{Tension à annoncer}
+    \begin{itemize}
+      \item Prouver \og pas de stack overflow~\fg{} $\neq$ prouver \og ne pas nuire~\fg.
+      \item Le problème de la \emph{spécification} reste entier (traité à l'acte II).
+    \end{itemize}
+    \textbf{Transition vers acte II}
+    \begin{itemize}
+      \item Et si le cadre technique lui-même était fragile ?
+    \end{itemize}
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% ACTE II — LE RETOURNEMENT
+% ─────────────────────────────────────────────────────────────
+\section{Acte II — Le retournement}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 6 — DE BRUIJN : QUI VÉRIFIE LE NOYAU ?
+% ─────────────────────────────────────────────────────────────
+\begin{frame}{Qui vérifie le noyau ?}
+  \small\emph{Si on fonde la sûreté sur la preuve, tout repose sur le vérificateur —
+  commençons par lui.}
+  \medskip
+
+  \begin{block}{Critère de de Bruijn~\cite{debruijn1980automath}}
+    Noyau \emph{minimal} : vérificateur de $\lambda$-termes, auditable par un humain.
+  \end{block}
+  \medskip
+
+  \begin{itemize}
+    \item Pas de confiance dans les tactiques
+    \item Confiance dans le \textbf{noyau} ($\sim$ quelques milliers de lignes)
+    \item Noyau correct $\Rightarrow$ toute preuve acceptée est correcte
+  \end{itemize}
+  \pause
+  \medskip
+
+  \begin{alertblock}{Régression}
+    Noyau correct ? \quad Compilateur du noyau ? \quad Matériel ?
+  \end{alertblock}
+  \note{
+    \textbf{Transition courte --- ne pas s'attarder}
+    \begin{itemize}
+      \item Si la sûreté repose sur la preuve : examiner le vérificateur.
+    \end{itemize}
+    \textbf{Point d'architecture à expliciter}
+    \begin{itemize}
+      \item Tactiques arbitrairement complexes $\to$ pas grave (produisent des termes).
+      \item Toute la confiance est concentrée dans le noyau.
+    \end{itemize}
+    \textbf{Régression à tracer au tableau}
+    \begin{itemize}
+      \item Noyau $\to$ compilateur du noyau $\to$ matériel.
+      \item Thématisée par Thompson (1984) --- slide suivante.
+    \end{itemize}
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 7 — THOMPSON 1984
+% ─────────────────────────────────────────────────────────────
+\begin{frame}{Thompson 1984 — \emph{Reflections on Trusting Trust}}
+  \begin{columns}
+    \begin{column}{0.55\textwidth}
+      Ken Thompson, Turing Award~\cite{thompson1984trusting}.
+      \medskip
+
+      \textbf{Compilateur C malveillant :}
+      \begin{enumerate}
+        \item porte dérobée injectée dans \texttt{login}
+        \item s'auto-reproduit à la compilation d'un compilateur
+      \end{enumerate}
+      \medskip
+
+      Source \emph{propre} $\to$ binaire \emph{compromis}.
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{block}{Thèse}
+        \emph{« You can't trust code that you did not totally create yourself. »}
+      \end{block}
+      \medskip
+      \begin{alertblock}{Conséquence}
+        La vérification \emph{déplace} la confiance — elle ne l'élimine pas.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+  \note{
+    \textbf{Portée de l'argument}
+    \begin{itemize}
+      \item Pas un bug particulier : \emph{structure générale} de la confiance en informatique.
+      \item Origine de la notion de \emph{trusted computing base}.
+    \end{itemize}
+    \textbf{Justification a posteriori du critère de de Bruijn}
+    \begin{itemize}
+      \item Minimiser le noyau = minimiser la surface de confiance.
+      \item Mais cette surface n'est \emph{jamais nulle} --- un petit noyau s'exécute toujours quelque part de non prouvé.
+    \end{itemize}
+    \textbf{Préparer la chute}
+    \begin{itemize}
+      \item 2026 donne des exemples concrets à chaque niveau qui craque.
+    \end{itemize}
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 8 — LE RETOURNEMENT 2026 (FULL SLIDE)
+% ─────────────────────────────────────────────────────────────
+\begin{frame}{Le retournement 2026 : l'IA casse le cadre}
+  \begin{columns}[T]
+    \begin{column}{0.32\textwidth}
+      \begin{block}{Mythos~\cite{anthropic2026mythos}}
+        \scriptsize
+        \textbf{Anthropic, avril 2026}
+        \smallskip
+
+        $\bullet$ 0-days dans OpenBSD, Linux, FreeBSD\\
+        $\bullet$ Milliers de vulnérabilités\\
+        $\bullet$ Source reconstruite depuis binaires
+      \end{block}
+      \scriptsize\emph{L'IA comme attaquant de classe nouvelle.}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{alertblock}{\texttt{False} dans Rocq~\cite{rocqfalse2026,sterin2026falsehood}}
+        \scriptsize
+        \textbf{Mars 2026}
+        \smallskip
+
+        $\bullet$ Sept preuves de \texttt{False} via bugs indépendants\\
+        $\bullet$ Guard checker, modules\\
+        $\bullet$ IA $+$ humain, avec l'équipe Rocq
+      \end{alertblock}
+      \scriptsize\emph{Le noyau minimal n'est pas infaillible.}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{exampleblock}{\emph{Watchers}~\cite{gopinathan2026watchers}}
+        \scriptsize
+        \textbf{\texttt{lean-zip}, avril 2026}
+        \smallskip
+
+        $\bullet$ Décodeur ZIP prouvé en Lean 4\\
+        $\bullet$ Parseur non vérifié : overflow\\
+        $\bullet$ Un 2\textsuperscript{e} bug hors-spec\\
+        $\bullet$ Trouvés par Claude Code
+      \end{exampleblock}
+      \scriptsize\emph{Preuve OK, runtime cassé, spec incomplète.}
+    \end{column}
+  \end{columns}
+  \medskip
+  \begin{center}
+    \textbf{Trois niveaux, trois fractures --- toutes mises au jour par l'IA.}
+  \end{center}
+  \note{
+    \textbf{\underline{Slide centrale --- prendre le temps.}}
+    \smallskip
+
+    \textbf{Mythos}
+    \begin{itemize}
+      \item Techniques : RCE, ROP, JIT ; bugs retrouvés 27 ans après leur introduction.
+      \item \emph{Retourne Tegmark} : l'IA qui vérifie est aussi celle qui casse --- course, non victoire.
+    \end{itemize}
+    \textbf{\texttt{False} dans Rocq}
+    \begin{itemize}
+      \item Bugs exploités : \emph{guard checker} + gestion des modules.
+      \item Collaboration humains $+$ Claude Opus 4.6 (Stérin), concertée avec l'équipe Rocq.
+      \item Distinction clé : \emph{auditabilité} $\neq$ \emph{correction}.
+    \end{itemize}
+    \textbf{Watchers}
+    \begin{itemize}
+      \item Décodeur prouvé ; le code \emph{appelant} (\texttt{lean\_alloc\_sarray}) ne l'est pas $\to$ heap overflow.
+      \item Second bug : comportement exploité \emph{non couvert} par la spécification --- ce n'est donc pas seulement un problème de runtime.
+      \item Découverte quasi autonome par \emph{Claude Code} (rôle humain : protocole + rapport).
+      \item Thompson 1984 littéralement appliqué à la vérification formelle.
+    \end{itemize}
+    \textbf{Point commun à souligner à la fin}
+    \begin{itemize}
+      \item C'est \emph{l'IA} qui met au jour les trois fractures.
+    \end{itemize}
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 9 — LES 3 NIVEAUX DE CONFIANCE
+% ─────────────────────────────────────────────────────────────
+\begin{frame}{Trois niveaux de confiance, ré-examinés}
+  \begin{center}
+    \begin{tikzpicture}[
+        >=Stealth,
+        layer/.style={draw, rounded corners=4pt, text width=7cm, align=left,
+                      minimum height=1cm, font=\small},
+        broken/.style={text=red!70!black, font=\scriptsize\itshape}
+      ]
+      \node[layer, fill=blue!10] (spec) at (0, 2.4)
+        {\textbf{1. Spécification}};
+      \node[layer, fill=orange!10] (kernel) at (0, 1.0)
+        {\textbf{2. Noyau}};
+      \node[layer, fill=green!10] (runtime) at (0, -0.4)
+        {\textbf{3. Runtime / compilateur / matériel}};
+
+      \node[broken, right=0.2cm of spec.east, text width=4cm] {Formaliser les valeurs ?};
+      \node[broken, right=0.2cm of kernel.east, text width=4cm] {\texttt{False} (Opus 4.6)~\cite{rocqfalse2026}};
+      \node[broken, right=0.2cm of runtime.east, text width=4cm] {Overflow Lean~\cite{gopinathan2026watchers}};
+    \end{tikzpicture}
+  \end{center}
+  \medskip
+  \begin{alertblock}{À retenir}
+    Pas de garantie absolue. Garanties \emph{relatives} à des hypothèses explicites.
+  \end{alertblock}
+  \note{
+    \textbf{Recadrage, pas réfutation}
+    \begin{itemize}
+      \item Vérification formelle reste l'outil le plus puissant pour les garanties logicielles.
+      \item Ses garanties sont \emph{conditionnelles} à des hypothèses explicites.
+    \end{itemize}
+    \textbf{Analogie à développer}
+    \begin{itemize}
+      \item Prouver en théorie des ensembles = prouver \emph{si} ZFC cohérent.
+      \item Prouver en Rocq = prouver \emph{si} noyau correct $\wedge$ runtime fidèle $\wedge$ matériel sain.
+    \end{itemize}
+    \textbf{Formule clé à noter au tableau}
+    \begin{itemize}
+      \item Pas \og peut-on faire confiance ?~\fg.
+      \item Mais \og à quoi fait-on confiance, et est-ce justifié ?~\fg.
+    \end{itemize}
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% ACTE III — QUESTIONS OUVERTES
+% ─────────────────────────────────────────────────────────────
+\section{Acte III — Questions ouvertes}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 10 — QUESTIONS THINK-PAIR-SHARE
+% ─────────────────────────────────────────────────────────────
+% \begin{frame}{Discussion — Think/Pair/Share}
+%   \small
+%   \textbf{Format :} 2 min seul, 3 min en binôme, mise en commun.
+%   \medskip
+
+%   \begin{enumerate}
+%     \item \textbf{IA : adversaire ou garante ?}\\
+%       Red team systématique, ou perte de confiance ?
+%     \smallskip
+
+%     \item \textbf{Formaliser Spinoza, Gödel}~\cite{pommeret2025spinoza,benzmuller2013goedel,kirchner2017zalta}\\
+%       Traduction fidèle, ou ré-interprétation ?
+%     \smallskip
+
+%     \item \textbf{Comprendre vs. vérifier}\\
+%       Preuve de 10\,000 lignes jamais lue — qui la comprend ?
+%     \smallskip
+
+%     \item \textbf{Sûreté prouvable~\cite{tegmark2023provably} : voie royale ou illusion ?}\\
+%       Peut-on prouver des valeurs non-formelles ?
+%   \end{enumerate}
+%   \note{
+%     \textbf{Gestion du temps}
+%     \begin{itemize}
+%       \item 2 min seul / 3 min binôme / mise en commun.
+%       \item 2 questions max sur 4 --- choisir selon l'énergie de la salle.
+%     \end{itemize}
+%     \textbf{Profil des questions}
+%     \begin{itemize}
+%       \item Q1 : concret (sécurité, red team, course offensive/défensive).
+%       \item Q2 : philosophique (traduction fidèle vs. ré-interprétation).
+%       \item Q3 : épistémologique --- Gonthier (4 couleurs) et Hales (Kepler) : preuves jamais lues intégralement, seulement vérifiées. \emph{Est-ce faire des maths ?}
+%       \item Q4 : IA safety / méta-éthique (peut-on formaliser des valeurs ?).
+%     \end{itemize}
+%   }
+% \end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 11 — BILAN DU COURS
+% ─────────────────────────────────────────────────────────────
+\begin{frame}{Bilan — six semaines}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \textbf{Savoir-faire :}
+      \begin{itemize}
+        \item Habiter un type
+        \item Déduction naturelle
+        \item Rocq : \texttt{Inductive}, \texttt{Fixpoint}, \texttt{induction}
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \textbf{Philosophiquement :}
+      \begin{itemize}
+        \item \textbf{Curry-Howard} : preuves $=$ programmes
+        \item \textbf{Constructivisme}
+        \item \textbf{Vérificationnisme}
+        \item \textbf{Mécanisation} du travail épistémique
+        \item \textbf{Confiance} déplacée, pas supprimée
+      \end{itemize}
+      \medskip
+      \begin{block}{Pour la suite}
+        \small
+        DM — rev $\circ$ rev $=$ id — 25 avril.\\
+        \emph{Calculemus}, mais lucidement.
+      \end{block}
+    \end{column}
+  \end{columns}
+  \note{
+    \textbf{Insister}
+    \begin{itemize}
+      \item Double niveau (technique $+$ philosophique) tenu sur 6 semaines.
+      \item \og Confiance déplacée, pas supprimée~\fg{} --- thèse centrale du cours.
+    \end{itemize}
+    \textbf{Cadre historique}
+    \begin{itemize}
+      \item Tournant formel s'accélère ; questions épistémologiques loin d'être résolues.
+      \item Les philosophes ont leur mot à dire dans ce débat.
+    \end{itemize}
+    \textbf{Clore}
+    \begin{itemize}
+      \item DM : \texttt{rev (rev l) = l}, rendu le 25 avril.
+      \item \emph{Calculemus, mais lucidement.}
+      \item Remerciements.
+    \end{itemize}
+  }
+\end{frame}
+
+% ─────────────────────────────────────────────────────────────
+% FRAME 12 — BIBLIOGRAPHIE
+% ─────────────────────────────────────────────────────────────
+\begin{frame}[allowframebreaks]{Bibliographie}
+  \tiny
+  \printbibliography[heading=none]
+\end{frame}
+
+\end{document}

@@ -60,6 +60,24 @@
   url    = {https://github.com/teorth/erdosproblems/wiki/AI-contributions-to-Erd\%C5\%91s-problems/}
 }
 
+@online{aristotle2026erdos728,
+  author  = {{Aristotle team (Harmonic) and Neel Somani}},
+  title   = {Resolution of {Erd\H{o}s} {Problem \#728}: a writeup of {Aristotle}'s {Lean} proof},
+  year    = {2026},
+  eprint  = {2601.07421},
+  eprinttype = {arXiv},
+  url     = {https://arxiv.org/abs/2601.07421},
+  urldate = {2026-04-21}
+}
+
+@online{deepmind2026aletheia,
+  author  = {{Google DeepMind}},
+  title   = {Aletheia: Autonomous Mathematical Discovery with {Gemini 3 Deep Think}},
+  year    = {2026},
+  url     = {https://deepmind.google/blog/accelerating-mathematical-and-scientific-discovery-with-gemini-deep-think/},
+  urldate = {2026-04-21}
+}
+
 @article{kirchner2017zalta,
   author  = {Daniel Kirchner},
   title   = {Representation and Partial Automation of the Principia Logico-Metaphysica in Isabelle/HOL},
@@ -146,10 +164,12 @@
   abstract     = {October 1, 2025 Lean Learning Seminar Lecture by Kevin Buzzard, Imperial College London. Title: What is formalization and why does it matter?}
 }
 
-@article{massotWhyFormalizeMathematics,
+@online{massotWhyFormalizeMathematics,
   title    = {Why Formalize Mathematics?},
   author   = {Massot, Patrick},
   abstract = {We’ve been doing mathematics for more than two thousand years with remarkable success. Hence it is natural to be puzzled by people investing a lot of time and energy into a very new and weird way of doing mathematics: the formalized way where human beings explain mathematical definitions and proofs to computers. Beyond puzzlement, some people are wary. They think the traditional way may disappear, or maybe even mathematicians may disappear, being replaced by AI agents. These events are extremely unlikely and they are not the goals of the mathematical formalization community. We want to add to our tool set, without loosing anything we already have. In this text I’ll explain what we want to add, distinguishing what already partially exists and what is currently science fiction. Examples will use Lean, a proof assistant software developed mostly by Leonardo de Moura at Microsoft Research, but everything I’ll write applies to other proof assistants such as Coq or Isabelle.},
+  date     = {2021-12-05},
+  url      = {https://www.imo.universite-paris-saclay.fr/~patrick.massot/files/exposition/why_formalize.pdf},
   langid   = {english},
   file     = {/Users/pablo/Zotero/storage/82J9KPXF/Massot - Why formalize mathematics.pdf}
 }
@@ -176,7 +196,7 @@
   author    = {Prawitz, Dag},
   date      = {1965},
   publisher = {Almqvist \& Wiksell},
-  location  = {Stockholm},
+  location  = {Stockholm}
 }
 
 @book{dummettLogicalBasisMetaphysics1991,
@@ -185,7 +205,7 @@
   date      = {1991},
   series    = {The {{William James}} Lectures, 1976},
   publisher = {Harvard University Press},
-  location  = {Cambridge, Massachusetts},
+  location  = {Cambridge, Massachusetts}
 }
 
 @article{zeilbergerUnityDuality2008,
@@ -204,6 +224,121 @@
   abstract     = {Most type systems are agnostic regarding the evaluation strategy for the underlying languages, with the value restriction for ML which is absent in Haskell as a notable exception. As type systems become more precise, however, detailed properties of the operational semantics may become visible because properties captured by the types may be sound under one strategy but not the other. For example, intersection types distinguish between call-by-name and call-by-value functions, because the subtyping law (A → B) ∩ (A → C) ≤ A → (B ∩ C) is unsound for the latter in the presence of effects.},
   langid       = {english},
   file         = {/Users/pablo/Zotero/storage/Q5K2J8G8/Zeilberger - 2008 - On the unity of duality.pdf}
+}
+
+@article{leroy2009compcert,
+  author  = {Xavier Leroy},
+  title   = {Formal verification of a realistic compiler},
+  journal = {Communications of the ACM},
+  volume  = {52},
+  number  = {7},
+  pages   = {107--115},
+  year    = {2009},
+  url     = {https://dl.acm.org/doi/10.1145/1538788.1538814}
+}
+
+@inproceedings{klein2009sel4,
+  author    = {Gerwin Klein and Kevin Elphinstone and Gernot Heiser and June Andronick and David Cock and Philip Derrin and Dhammika Elkaduwe and Kai Engelhardt and Rafal Kolanski and Michael Norrish and Thomas Sewell and Harvey Tuch and Simon Winwood},
+  title     = {{seL4}: Formal verification of an {OS} kernel},
+  booktitle = {SOSP},
+  year      = {2009},
+  url       = {https://dl.acm.org/doi/10.1145/1629575.1629596}
+}
+
+@inproceedings{behm1999meteor,
+  author    = {P. Behm and P. Benoit and A. Faivre and J.-M. Meynadier},
+  title     = {M\'et\'eor: A successful application of {B} in a large project},
+  booktitle = {FM'99---Formal Methods},
+  year      = {1999},
+  url       = {https://link.springer.com/chapter/10.1007/3-540-48119-2_22}
+}
+
+@thesis{wallez2025mls,
+  author      = {Th\'eophile Wallez},
+  title       = {Cadriciel de v\'erification pour la messagerie de groupe s\'ecuris\'ee},
+  type        = {phdthesis},
+  institution = {Inria Paris},
+  year        = {2025},
+  url         = {https://theses.fr/s275565}
+}
+
+@article{gonthier2008fourcolor,
+  author  = {Georges Gonthier},
+  title   = {Formal Proof---The Four Color Theorem},
+  journal = {Notices of the AMS},
+  year    = {2008},
+  url     = {https://www.ams.org/notices/200811/tx081101382p.pdf}
+}
+
+@article{hales2017flyspeck,
+  author  = {Thomas Hales and others},
+  title   = {A Formal Proof of the Kepler Conjecture},
+  journal = {Forum of Mathematics, Pi},
+  year    = {2017},
+  url     = {https://doi.org/10.1017/fmp.2017.1}
+}
+
+@article{thompson1984trusting,
+  author  = {Ken Thompson},
+  title   = {Reflections on Trusting Trust},
+  journal = {Communications of the ACM},
+  volume  = {27},
+  number  = {8},
+  pages   = {761--763},
+  year    = {1984},
+  url     = {https://dl.acm.org/doi/10.1145/358198.358210}
+}
+
+@online{tegmark2023provably,
+  title       = {Provably Safe Systems: The Only Path to Controllable {AGI}},
+  author      = {Tegmark, Max and Omohundro, Steve},
+  date        = {2023-09-05},
+  eprint      = {2309.01933},
+  eprinttype  = {arXiv},
+  eprintclass = {cs},
+  doi         = {10.48550/arXiv.2309.01933},
+  url         = {http://arxiv.org/abs/2309.01933},
+  urldate     = {2026-04-16}
+}
+
+@online{severini2026infrastructure,
+  title   = {Infrastructure for Mathematics},
+  author  = {Severini, Simone},
+  year    = {2026},
+  url     = {https://simoneseverini.github.io/infrastructure-for-mathematics.html},
+  urldate = {2026-04-16}
+}
+
+@online{gopinathan2026watchers,
+  title   = {Who Watches the Watchers? Fuzzing a Formally-Verified {ZIP} Parser},
+  author  = {Gopinathan, Kiran},
+  year    = {2026},
+  url     = {https://kirancodes.me/posts/log-who-watches-the-watchers.html},
+  urldate = {2026-04-16}
+}
+
+@online{anthropic2026mythos,
+  title   = {Claude Mythos Preview},
+  author  = {{Anthropic}},
+  year    = {2026},
+  url     = {https://red.anthropic.com/2026/mythos-preview/},
+  urldate = {2026-04-16}
+}
+
+@online{rocqfalse2026,
+  title   = {Proof of False Found by {Opus 4.6} and mxdys ({bbchallenge})},
+  author  = {{Rocq Zulip community}},
+  year    = {2026},
+  url     = {https://rocq-prover.zulipchat.com/#narrow/channel/237977-Rocq-users/topic/Proof.20of.20false.20found.20by.20Opus.204.2E6.20and.20mxdys.20.28bbchallenge.29/with/580830257},
+  urldate = {2026-04-16}
+}
+
+@online{sterin2026falsehood,
+  title   = {In Search of Falsehood: {AI}-Assisted Hunt for Inconsistencies in {Rocq}},
+  author  = {St{\'e}rin, Tristan},
+  year    = {2026},
+  url     = {https://tristan.st/blog/in_search_of_falsehood},
+  urldate = {2026-04-20}
 }
 
 @incollection{schroeder-heisterProofTheoreticSemantics2024,
