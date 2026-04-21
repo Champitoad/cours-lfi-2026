@@ -84,7 +84,14 @@
       "Bash(echo \"p1=$?\")",
       "Bash(echo \"b=$?\")",
       "Bash(echo \"p2=$?\")",
-      "Bash(echo \"p3=$?\")"
+      "Bash(echo \"p3=$?\")",
+      "Bash(git -C /Users/pablo/Documents/pablo.donato/cours-lfi-2026 remote -v)",
+      "Bash(git -C /Users/pablo/Documents/work/cours/LFI-2026 remote -v)",
+      "Bash(git -C /Users/pablo/Documents/pablo.donato/cours-lfi-2026 log --oneline -5)",
+      "Bash(git -C /Users/pablo/Documents/work/cours/LFI-2026 log --oneline -5)",
+      "Bash(coqc --version)",
+      "Bash(coqc exos_correction.v)",
+      "Bash(git *)"
     ],
     "additionalDirectories": [
       "/Users/pablo/Documents/work/cours/LFI-2026/lesson5"
